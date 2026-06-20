@@ -1,0 +1,130 @@
+// This is your Prisma schema file for Supabase
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for direct connection to Supabase
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+// Enable UUID extension for Supabase
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  passwordHash  String?
+  name          String
+  role          UserRole  @default(TENANT)
+  phoneNumber   String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(6)
+  authId        String?   @unique // Supabase Auth ID
+
+  // Relations
+  properties    Property[]    @relation("PropertyUsers")
+  ownedProperties Property[]  @relation("PropertyOwner")
+  repairRequests RepairRequest[] @relation("RequestedBy")
+  assignedRepairs RepairRequest[] @relation("AssignedTo")
+
+  @@map("users") // Explicit table name for Supabase
+}
+
+model Property {
+  id          String    @id @default(uuid()) @db.Uuid
+  address     String
+  unitNumber  String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  ownerId     String    @db.Uuid
+  owner       User      @relation("PropertyOwner", fields: [ownerId], references: [id])
+  tenants     User[]    @relation("PropertyUsers")
+  repairRequests RepairRequest[]
+
+  @@map("properties")
+}
+
+model RepairRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  status      RepairStatus @default(PENDING)
+  priority    Priority    @default(MEDIUM)
+  createdAt   DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  propertyId  String    @db.Uuid
+  property    Property    @relation(fields: [propertyId], references: [id])
+  requestedById String    @db.Uuid
+  requestedBy User        @relation("RequestedBy", fields: [requestedById], references: [id])
+  assignedToId String?    @db.Uuid
+  assignedTo  User?       @relation("AssignedTo", fields: [assignedToId], references: [id])
+  
+  // AI Agent fields
+  aiAnalysis  Json?
+  aiActions   Json?
+  messages    Message[]
+
+  @@map("repair_requests")
+}
+
+model Message {
+  id          String    @id @default(uuid()) @db.Uuid
+  content     String
+  senderType  SenderType
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  repairRequestId String    @db.Uuid
+  repairRequest RepairRequest @relation(fields: [repairRequestId], references: [id])
+
+  @@map("messages")
+}
+
+model ServiceProvider {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  phoneNumber String
+  email       String?
+  specialties String[]  @db.Text[]
+  rating      Float     @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@map("service_providers")
+}
+
+enum UserRole {
+  ADMIN
+  LANDLORD
+  TENANT
+  SERVICE_PROVIDER
+}
+
+enum RepairStatus {
+  PENDING
+  ANALYZING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
+}
+
+enum SenderType {
+  TENANT
+  LANDLORD
+  AI_AGENT
+  SERVICE_PROVIDER
+} 

@@ -1,0 +1,1542 @@
+{
+  "name": "Tobin (webhook)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "maintainance-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "1666825c-3a87-44ab-bba1-a7fb1093d72e",
+      "name": "Webhook",
+      "webhookId": "0b134469-2a50-4831-b741-3d13021a32ba"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=New maintenance request:\nTenant: {{$json.tenant_name}}\nPhone: {{$json.tenant_phone}}\nProperty: {{$json.property_address}}\nUnit: {{$json.apartment_unit}}\nIssue: {{$json.issue_description}}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are Tobin, a professional maintenance coordination assistant for landlords.\n\nYour primary goals:\n- Process maintenance requests from tenants\n- Categorize requests by urgency (Emergency, High, Medium, Low)\n- Extract key details needed for handyman dispatch\n- Find and assign the best available vendor from the database\n- Determine if request requires immediate attention or can be scheduled\n\nFor each request, you must:\n1. Assess urgency level based on the issue described\n2. Extract: property address, tenant contact, issue type, specific location in unit\n3. Classify issue category (plumbing, electrical, HVAC, general repair, etc.)\n4. Use the Postgres tool to find the best vendor for this category\n5. Provide a clear, professional summary for the handyman\n6. Flag if photos or additional details are needed\n\nINSTRUCTIONS: Always classify urgency using EXACTLY these values:\n- \"Emergency\" for immediate threats (flooding, gas leaks, no heat in winter)\n- \"High\" for issues needing attention within 24-48 hours  \n- \"Medium\" for issues needing attention within a week\n- \"Low\" for routine maintenance\n\nFor heating issues that require immediate attention, always use \"Emergency\"\n\nTOOL USAGE - CRITICAL:\nWhen calling the postgres vendor lookup tool:\n- Pass ONLY the specialty string: \"hvac\", \"plumbing\", \"electrical\", or \"general\"\n- Do NOT include SQL syntax like \"specialty=\" or quotes\n- Example: Call tool with parameter \"hvac\", not \"specialty='hvac'\"\n\nThe tool will return the best available vendor based on:\n- Matching specialty\n- Primary vendor preference\n- Highest rating\n- Best response time\n\nREQUIRED OUTPUT FORMAT:\nAfter using the vendor lookup tool, you MUST respond in this JSON format including ALL vendor information:\n\n{\n  \"urgency\": \"Emergency|High|Medium|Low\",\n  \"category\": \"plumbing|electrical|hvac|general|other\",\n  \"summary\": \"Brief professional description\",\n  \"handyman_notes\": \"Specific instructions for handyman\",\n  \"requires_photos\": true/false,\n  \"estimated_time\": \"30min|1-2hrs|half-day|full-day\",\n  \"vendor_id\": <vendor id from database>,\n  \"vendor_name\": \"<vendor name from database>\",\n  \"vendor_phone\": \"<vendor phone from database>\",\n  \"vendor_email\": \"<vendor email from database>\"\n}\n\nCRITICAL: You must ALWAYS include the vendor_id, vendor_name, vendor_phone, and vendor_email fields from the vendor lookup tool results in your response. Do not make up vendor information - use the exact data returned by the database tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "c351caea-17ee-4c5c-9324-93f6984e8fd6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        480
+      ],
+      "id": "b6f3ff39-2b80-4be5-9511-65d2fc33ad34",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6f9LPxJsq6GIzMA5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.tenant_name }} "
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        224
+      ],
+      "id": "1938af37-392c-427e-800d-a9e5c8543d60",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "output": "={{\n  $json.urgency.toLowerCase() === 'emergency' ? 0 :\n  $json.urgency.toLowerCase() === 'high' ? 1 :\n  $json.urgency.toLowerCase() === 'medium' ? 2 :\n  $json.urgency.toLowerCase() === 'low' ? 3 :\n  -1\n}}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2256,
+        -16
+      ],
+      "id": "af1ca7d9-a427-4c81-b070-98397c48cdff",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "from": "+1 206 489 3667",
+        "to": "={{ $('Code').item.json.tenant_phone }}!",
+        "message": "=To: {{ $('Code').item.json.tenant_phone }}\n\nMessage: \nHi {{ $('Code').item.json.tenant_name }}! We received your maintenance request:\n\nIssue: {{ $('Code').item.json.issue_description }}\nProperty: {{ $('Code').item.json.address }}\n\nWe're contacting your vendor now. You'll get an update soon! - Tobin AI",
+        "options": {
+          "statusCallback": ""
+        }
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        -320
+      ],
+      "id": "605114a7-32bb-46a8-b4f6-ef53e5959c4d",
+      "name": "Twilio",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"success\",\n  \"message\": \"Maintenance request received and processed\",\n  \"ticket_id\": \"{{$runIndex}}-{{$('Webhook').item.json.tenant_name}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.3,
+      "position": [
+        3840,
+        -320
+      ],
+      "id": "797235f3-b543-40d2-a082-1707016c098d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "={{ $('Code').item.json.vendor_email }}",
+        "html": "={{ $('Code').item.json.summary }}\n```\n\n---\n\n\n### **Subject:**\n```\n{{ $('Code').item.json.urgency }} Maintenance - Unit {{ $('Code').item.json.unit }}\n\n{{ $('Code').item.json.handyman_notes }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3456,
+        -320
+      ],
+      "id": "52c71d4a-00dc-4538-8ffb-b86d4d0e648c",
+      "name": "Send Email",
+      "webhookId": "032855ea-7be8-4e3a-b734-4640806e9e1f",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        528,
+        512
+      ],
+      "id": "35e48573-a092-4bab-98fc-8671e307321d",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get data from previous nodes\nconst aiOutput = $input.first().json;\nconst webhookData = $('Webhook').first().json.body;\nconst insertedData = $('Insert rows in a table1').first().json;\n\n// Extract database IDs\nconst requestId = insertedData.request_id;\nconst databaseId = insertedData.id;\n\n// Parse AI output (handle both string and object formats)\nlet parsedAI;\ntry {\n  if (typeof aiOutput.output === 'string') {\n    let cleanOutput = aiOutput.output.trim();\n    \n    // Remove markdown code blocks if present\n    if (cleanOutput.startsWith('```')) {\n      cleanOutput = cleanOutput.split('\\n').slice(1, -1).join('\\n');\n    }\n    \n    parsedAI = JSON.parse(cleanOutput);\n  } else {\n    parsedAI = aiOutput.output || aiOutput;\n  }\n} catch (error) {\n  console.error('Failed to parse AI output:', error);\n  parsedAI = {}; // Fallback to empty object\n}\n\n// Return combined data structure\nreturn {\n  json: {\n    // Database IDs\n    id: databaseId,\n    request_id: requestId,\n    \n    // AI Analysis\n    urgency: parsedAI.urgency || 'medium',\n    category: parsedAI.category || 'general',\n    summary: parsedAI.summary || webhookData.issue_description || '',\n    handyman_notes: parsedAI.handyman_notes || parsedAI.summary || '',\n    requires_photos: parsedAI.requires_photos || false,\n    estimated_time: parsedAI.estimated_time || '1-2hrs',\n    \n    // Vendor information from AI Agent\n    assigned_vendor_id: parsedAI.vendor_id || null,\n    vendor_name: parsedAI.vendor_name || null,\n    vendor_phone: parsedAI.vendor_phone || null,\n    vendor_email: parsedAI.vendor_email || null,\n    \n    // Backward compatibility fields\n    primary_vendor_name: parsedAI.vendor_name || null,\n    primary_vendor_phone: parsedAI.vendor_phone || null,\n    backup_vendor_phone: parsedAI.vendor_phone || null,\n    \n    // Original webhook data\n    tenant_name: webhookData.tenant_name || 'Unknown',\n    tenant_phone: webhookData.tenant_phone || webhookData.phone_number || '',\n    property_address: webhookData.property_address || '',\n    apartment_unit: webhookData.apartment_unit || '',\n    issue_description: webhookData.issue_description || '',\n    \n    // Metadata\n    date_created: new Date().toISOString(),\n    status: 'pending',\n    landlord_email: \"your-email@example.com\",\n    landlord_name: \"Test Landlord\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -16
+      ],
+      "id": "f4e5d1ad-e558-49a8-8a39-7b308e1550cb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        224
+      ],
+      "id": "fdcc9b1f-1be3-46db-8d0d-6951d59f030b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "pp4O42IPIwquYV4l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "{{ $('Code').item.json.vendor_email }}",
+        "html": "={{ $('Code').item.json.handyman_notes }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3456,
+        -128
+      ],
+      "id": "db9a8317-f70c-454e-a103-0964ce4b55d9",
+      "name": "Send email",
+      "webhookId": "1213e6c3-e8f5-4b56-909a-c93fde445b3a",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "{{ $('Code').item.json.vendor_email }}",
+        "html": "={{ $json.summary }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3456,
+        48
+      ],
+      "id": "9a5e084e-0ce7-4b9b-8010-5e828f0db846",
+      "name": "Send email1",
+      "webhookId": "dca7f083-5926-4bf9-8384-92b812498864",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "{{ $('Code').item.json.vendor_email }}",
+        "html": "={{ $json.summary }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3456,
+        240
+      ],
+      "id": "39150641-cc4d-4440-abde-bb5ccc905d35",
+      "name": "Send email2",
+      "webhookId": "c322c508-3df8-4dc9-af7b-28f69a82f669",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+1 206 489 3667",
+        "to": "={{ $('Code').item.json.primary_vendor_phone }}",
+        "message": "=🚨 EMERGENCY MAINTENANCE 🚨  \nProperty: {{ $('Code').item.json.address }} \nUnit: {{ $('Code').item.json.unit }} \nType: {{ $('Code').item.json.category }}  \n\nISSUE: {{ $('Code').item.json.summary }}  \nTENANT NOTES: {{ $('Code').item.json.issue_description }}  \nTECHNICIAN INSTRUCTIONS: {{ $('Code').item.json.handyman_notes }}  \n\nEstimated time: {{ $('Code').item.json.estimated_time }} \nPhotos needed: {{ $('Code').item.json.requires_photos }}  \n\n👤 TENANT CONTACT: {{ $('Code').item.json.tenant_name }} 📞 {{ $('Code').item.json.tenant_phone }}  \n\n⚡ URGENT - Reply YES to accept or call tenant NOW",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3248,
+        -320
+      ],
+      "id": "2326b9da-35ee-4e9e-99e8-6b70a23f3503",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3648,
+        -320
+      ],
+      "id": "a8a46ae0-69b7-494d-91e0-e4706d825978",
+      "name": "Wait",
+      "webhookId": "4bda0910-37ad-4945-aa3a-b28df6b6b850"
+    },
+    {
+      "parameters": {
+        "from": "+1 206 489 3667",
+        "to": "{{ $('Code').item.json.tenant_phone }}!",
+        "message": "=To: {{ $('Code').item.json.tenant_phone }}  \n\nMessage:  Hi {{ $('Code').item.json.tenant_name }}! We received your maintenance request:  \nIssue: {{ $('Code').item.json.issue_description }} \nProperty: {{ $('Code').item.json.address }}  We're contacting your vendor now. You'll get an update soon! - Tobin AI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        -128
+      ],
+      "id": "f75dfa76-f57f-4f53-a99b-dcc0f741e771",
+      "name": "Send an SMS/MMS/WhatsApp message1",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+1 2064893667",
+        "to": "{{ $('Code').item.json.primary_vendor_phone }}",
+        "message": "message to vendor",
+        "options": {
+          "statusCallback": ""
+        }
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3232,
+        -128
+      ],
+      "id": "af8a28b4-d45c-4c7c-b413-9c52a01d7243",
+      "name": "Send an SMS/MMS/WhatsApp message2",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+1 206 489 3667",
+        "to": "{{ $('Code').item.json.tenant_phone }}!",
+        "message": "message to tenant",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        240
+      ],
+      "id": "ecf2a7f6-fdc6-4e4a-a519-42b86b33adc1",
+      "name": "Send an SMS/MMS/WhatsApp message4",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+1 206 489 3667",
+        "to": "{{ $('Code').item.json.tenant_phone }}!",
+        "message": "message to tenant",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        48
+      ],
+      "id": "cad58480-c04a-4f2b-a17d-68b9d3e18a7c",
+      "name": "Send an SMS/MMS/WhatsApp message3",
+      "credentials": {
+        "twilioApi": {
+          "id": "iEXq4L3nazcXA1Fd",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3664,
+        -128
+      ],
+      "id": "543f6697-b89b-4c10-8dec-930fa09d1c3b",
+      "name": "Wait1",
+      "webhookId": "693a6302-4b4a-4910-bd1f-c714b2027360"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3664,
+        48
+      ],
+      "id": "6b273d26-810c-476f-b687-0fa897ff323a",
+      "name": "Wait2",
+      "webhookId": "8dcf357f-49e4-4ef7-a177-a7dc1e5c84b5"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3664,
+        240
+      ],
+      "id": "6a6d59af-d851-418f-8a62-0f47c9d59fc4",
+      "name": "Wait3",
+      "webhookId": "940a2d30-5cd4-45b5-bc08-6c61b8914020"
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "jsxr1995@gmail.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3872,
+        -128
+      ],
+      "id": "49fa6d5f-2384-4f84-a628-1b4c7bc77743",
+      "name": "Send email3",
+      "webhookId": "c8bae893-0794-4a22-8d8f-2f0852866956",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "jsxr1995@gmail.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3872,
+        48
+      ],
+      "id": "6f5e0fb3-6fc6-43eb-b1d0-13cf5cd1edd9",
+      "name": "Send email4",
+      "webhookId": "9e3eef78-d441-4f47-a65d-33a913f9bf08",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "jsoh0118@gmail.com",
+        "toEmail": "jsxr1995@gmail.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3872,
+        240
+      ],
+      "id": "1c619885-5067-49e7-a0c3-dd5e5c5831b9",
+      "name": "Send email5",
+      "webhookId": "3fc7b785-d8d4-4c93-9547-ac397d56731f",
+      "credentials": {
+        "smtp": {
+          "id": "9LJWB491GhZXCjn4",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fbe2d120-ec00-4834-8140-e1ce3637c015",
+              "leftValue": "={{ $input.all().length }}\n",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        -304
+      ],
+      "id": "1b27b377-8011-405e-aa97-55b6de81554b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6e010a5-e45b-4906-8e17-930119ea486f",
+              "leftValue": "={{ $input.all().length }}\n",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        -176
+      ],
+      "id": "7907ae90-87a8-4b3a-bde6-039ab3a2d48e",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "maintenance_requests",
+          "mode": "list",
+          "cachedResultName": "maintenance_requests"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "request_id": "=REQ-{{$now.format('YYYYMMDDHHmmss')}}-{{Math.floor(Math.random() * 1000)}}",
+            "tenant_name": "={$json.tenant_name}}",
+            "tenant_phone": "={{$json.body.tenant_phone}}",
+            "property_address": "={{$json.body.property_address}}",
+            "apartment_unit": "={{$json.body.apartment_unit}}",
+            "issue_description": "={{$json.body.issue_description}}",
+            "status": "pending"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tenant_name",
+              "displayName": "tenant_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tenant_phone",
+              "displayName": "tenant_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "property_address",
+              "displayName": "property_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apartment_unit",
+              "displayName": "apartment_unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "issue_description",
+              "displayName": "issue_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "handyman_notes",
+              "displayName": "handyman_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "vendor_phone",
+              "displayName": "vendor_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "backup_vendor_phone",
+              "displayName": "backup_vendor_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow_step",
+              "displayName": "workflow_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "ai_processed_at",
+              "displayName": "ai_processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "vendor_assigned_at",
+              "displayName": "vendor_assigned_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "wait_started_at",
+              "displayName": "wait_started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "wait_duration_minutes",
+              "displayName": "wait_duration_minutes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "completed_at",
+              "displayName": "completed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last_updated_at",
+              "displayName": "last_updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        144,
+        -16
+      ],
+      "id": "2fa5db39-d379-4dcb-81db-dc665400eafb",
+      "name": "Insert rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "JOQTFb3oiBUS3N34",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "maintenance_requests",
+          "mode": "list",
+          "cachedResultName": "maintenance_requests"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "category": "={{$json.category}}",
+            "urgency": "={{$json.urgency}}",
+            "summary": "={{$json.summary}}",
+            "handyman_notes": "={{$json.handyman_notes}}",
+            "ai_processed_at": "={{$now}}",
+            "last_updated_at": "={{$now}}",
+            "wait_duration_minutes": 0,
+            "id": "={{ $('Insert rows in a table1').first().json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tenant_name",
+              "displayName": "tenant_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tenant_phone",
+              "displayName": "tenant_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "property_address",
+              "displayName": "property_address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "apartment_unit",
+              "displayName": "apartment_unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "issue_description",
+              "displayName": "issue_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "handyman_notes",
+              "displayName": "handyman_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vendor_phone",
+              "displayName": "vendor_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "backup_vendor_phone",
+              "displayName": "backup_vendor_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "workflow_step",
+              "displayName": "workflow_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ai_processed_at",
+              "displayName": "ai_processed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vendor_assigned_at",
+              "displayName": "vendor_assigned_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "wait_started_at",
+              "displayName": "wait_started_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "wait_duration_minutes",
+              "displayName": "wait_duration_minutes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "completed_at",
+              "displayName": "completed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_updated_at",
+              "displayName": "last_updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1328,
+        96
+      ],
+      "id": "8dafd4c3-8f5c-498f-ad7e-434c89d7e8d7",
+      "name": "Update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "JOQTFb3oiBUS3N34",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ensure request_id and all data is preserved and passed through\nconsole.log(\"output 1\")\nreturn $input.all().map(item => ({\n  ...item.json,\n  request_id: item.json.request_id\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -16
+      ],
+      "id": "ba5cc89f-fe1f-4476-adc1-90e0164b24a9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get data from previous nodes\nconst aiOutput = $input.first().json;\n\n// Get the original webhook data\nconst webhookData = $('Webhook').first().json.body;\n\n// Get the database ID from the Insert node\nconst insertedData = $('Insert rows in a table1').first().json;\nconst databaseId = insertedData.id;\n\n// Generate a clean reference number\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0].replace(/-/g, '');\nconst requestId = `TM-${dateStr}-${String(databaseId).padStart(4, '0')}`;\n\n// Parse the AI output\nlet parsedAI;\nlet aiReasoningSteps = [];\n\n// Track reasoning steps\naiReasoningSteps.push(\"📝 Received maintenance request\");\naiReasoningSteps.push(`🏠 Property: ${webhookData.property_address}`);\naiReasoningSteps.push(`📍 Unit: ${webhookData.apartment_unit}`);\n\nif (typeof aiOutput.output === 'string') {\n  aiReasoningSteps.push(\"🤖 Parsing AI analysis...\");\n  \n  let cleanOutput = aiOutput.output.trim();\n  if (cleanOutput.startsWith('```')) {\n    cleanOutput = cleanOutput.split('\\n').slice(1, -1).join('\\n');\n  }\n  parsedAI = JSON.parse(cleanOutput);\n} else {\n  parsedAI = aiOutput;\n}\n\n// Log AI decisions\naiReasoningSteps.push(`⚡ Classified as: ${parsedAI.category || 'general'}`);\naiReasoningSteps.push(`🚨 Urgency level: ${parsedAI.urgency || 'medium'}`);\naiReasoningSteps.push(`⏱️ Estimated time: ${parsedAI.estimated_time || '1-2hrs'}`);\n\n// Check if vendor was found\nif (parsedAI.vendor_name) {\n  aiReasoningSteps.push(`🔍 Found vendor: ${parsedAI.vendor_name}`);\n  aiReasoningSteps.push(`📞 Contact: ${parsedAI.vendor_phone}`);\n} else {\n  aiReasoningSteps.push(\"⚠️ No vendor found, using defaults\");\n}\n\naiReasoningSteps.push(\"✅ Work order created successfully\");\n\n// Return combined data with AI reasoning\nreturn {\n  json: {\n    id: databaseId,\n    request_id: requestId,\n    urgency: parsedAI.urgency || 'medium',\n    category: parsedAI.category || 'general',\n    summary: parsedAI.summary || webhookData.issue_description,\n    handyman_notes: parsedAI.handyman_notes || parsedAI.summary,\n    requires_photos: parsedAI.requires_photos || false,\n    estimated_time: parsedAI.estimated_time || '1-2hrs',\n    \n    // Original form data\n    tenant_name: webhookData.tenant_name || 'Unknown',\n    tenant_phone: webhookData.tenant_phone || '',\n    property_address: parsedAI.property_address || webhookData.property_address || '',\n    apartment_unit: webhookData.apartment_unit || '',\n    issue_description: webhookData.issue_description || '',\n    \n    // Metadata\n    date_created: new Date().toISOString(),\n    status: 'pending',\n    \n    // AI Reasoning Steps (NEW!)\n    ai_reasoning: aiReasoningSteps,\n    \n    // Landlord info\n    landlord_email: 'your-email@example.com',\n    landlord_name: 'Test Landlord'\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -16
+      ],
+      "id": "5b7479b2-5b4c-44f5-9091-c0385a3699fc",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM vendors \nWHERE specialty = '{{ $json.category }}' \n  AND is_active = true \nORDER BY is_primary DESC, rating DESC \nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "2bc24e77-15da-40bd-bb64-a880933e4c43",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "JOQTFb3oiBUS3N34",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to find the best available handyman or contractor for a maintenance request.\n\nWHEN TO USE:\n- After analyzing and categorizing a maintenance issue\n- When you need to assign a vendor to handle the repair\n- Always use this before generating final handyman notes\n\nHOW TO USE:\n- Pass the 'specialty' parameter matching the issue category\n- Valid specialties: 'hvac', 'plumbing', 'electrical', 'general'\n\nSPECIALTY MAPPING:\n- hvac: heating, cooling, AC, furnace, thermostat, temperature issues\n- plumbing: water leaks, pipes, drains, toilets, faucets, sinks\n- electrical: power outages, outlets, lights, wiring, breakers, switches  \n- general: doors, windows, locks, appliances, minor repairs, anything else\n\nThe query will automatically return the best vendor based on:\n1. Primary vendor status (preferred contractors)\n2. Highest rating\n3. Most competitive hourly rate\n\nEXAMPLE USAGE:\nFor \"my AC is broken\", use specialty='hvac'\nFor \"toilet is leaking\", use specialty='plumbing'\nFor \"door won't lock\", use specialty='general'Choose based on the maintenance issue type.",
+        "operation": "executeQuery",
+        "query": "SELECT * FROM vendors \nWHERE specialty = '{{ $fromAI(\"query_Parameters\") }}'\n  AND is_active = true\nORDER BY is_primary DESC, rating DESC\nLIMIT 1",
+        "options": {
+          "queryReplacement": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query_Parameters', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        784,
+        224
+      ],
+      "id": "d7b79c9b-7400-4697-9ca5-2aef4adf03c8",
+      "name": "Execute a SQL query in Postgres",
+      "credentials": {
+        "postgres": {
+          "id": "JOQTFb3oiBUS3N34",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"urgency\": {\n      \"type\": \"string\",\n      \"description\": \"Emergency, High, Medium, or Low\"\n    },\n    \"category\": {\n      \"type\": \"string\",\n      \"description\": \"The maintenance category (hvac, plumbing, electrical, general, etc.)\"\n    },\n    \"summary\": {\n      \"type\": \"string\",\n      \"description\": \"Brief summary of the issue\"\n    },\n    \"handyman_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Detailed notes for the handyman\"\n    },\n    \"requires_photos\": {\n      \"type\": \"boolean\",\n      \"description\": \"Whether photos are needed before repair\"\n    },\n    \"estimated_time\": {\n      \"type\": \"string\",\n      \"description\": \"Estimated time to complete (e.g., 1-2hrs, 2-4hrs)\"\n    },\n    \"vendor_id\": {\n      \"type\": \"number\",\n      \"description\": \"The ID of the assigned vendor from the database\"\n    },\n    \"vendor_name\": {\n      \"type\": \"string\",\n      \"description\": \"The name of the assigned vendor\"\n    },\n    \"vendor_phone\": {\n      \"type\": \"string\",\n      \"description\": \"The phone number of the assigned vendor\"\n    },\n    \"vendor_email\": {\n      \"type\": \"string\",\n      \"description\": \"The email of the assigned vendor\"\n    }\n  },\n  \"required\": [\"urgency\", \"category\", \"summary\", \"handyman_notes\", \"vendor_id\", \"vendor_name\", \"vendor_phone\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        224
+      ],
+      "id": "c7bcfdcb-65c2-4885-abca-b926390f1d01",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200,
+          "responseKey": "={\n  \"success\": true,\n  \"reference_number\": \"={{ $json.request_id }}\",\n  \"ai_reasoning\": \"={{ $json.ai_reasoning }}\",\n  \"urgency\": \"={{ $json.urgency }}\",\n  \"category\": \"={{ $json.category }}\",\n  \"summary\": \"={{ $json.summary }}\",\n  \"estimated_time\": \"={{ $json.estimated_time }}\"\n}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1696,
+        160
+      ],
+      "id": "e081532e-9105-4b31-b6a1-a0ba34597594",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "Twilio": {
+      "main": [
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message1": {
+      "main": [
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message2": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message3": {
+      "main": [
+        [
+          {
+            "node": "Send email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message4": {
+      "main": [
+        [
+          {
+            "node": "Send email2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email2": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Send email3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Send email4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Send email5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        []
+      ]
+    },
+    "If1": {
+      "main": [
+        []
+      ]
+    },
+    "Insert rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update rows in a table": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        []
+      ]
+    },
+    "Execute a SQL query in Postgres": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        []
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "23c3c169-7b59-4653-aca6-0ca9df93b596",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "737357fd06dc7ea5d3c57729957d01adec6af6ffb8c7390d6fc767813ebaeea8"
+  },
+  "id": "DwRmGl4gG17orRSj",
+  "tags": []
+}
