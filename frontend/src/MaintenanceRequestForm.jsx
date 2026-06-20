@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const N8N_WEBHOOK_URL = "http://localhost:5678/webhook/maintainance-request"; // Change to your production URL as needed
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const N8N_WEBHOOK_URL = `${API_BASE}/webhook/maintenance-request`;
 
 export default function MaintenanceRequestForm() {
   const [form, setForm] = useState({
