@@ -8,6 +8,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.prebuilt import create_react_agent
 from db import get_conn
 from tools import lookup_vendor_by_specialty, send_sms, send_email
+from vendor_research import search_vendors_nearby, save_outreach_candidates
 import psycopg2.extras
 
 SYSTEM_PROMPT = """You are Tobin, a professional maintenance coordination assistant for landlords.
@@ -190,6 +191,60 @@ def notify_vendor(state: dict) -> dict:
 
     reasoning = state.get("ai_reasoning", [])
     reasoning.append(f"📨 Vendor notified: {state.get('vendor_name', 'N/A')}")
+    return {**state, "ai_reasoning": reasoning}
+
+
+def research_vendors(state: dict) -> dict:
+    """Search Google Places for vendors when none found in DB."""
+    category = state.get("category", "general")
+    address = state.get("property_address", "")
+    request_id = state.get("request_id", "")
+
+    candidates = search_vendors_nearby(category, address)
+
+    reasoning = state.get("ai_reasoning", [])
+    if candidates:
+        reasoning.append(f"🔎 Found {len(candidates)} vendors via Google Places")
+        save_outreach_candidates(request_id, candidates, source="google_places")
+        # Use the top result as the assigned vendor for notifications
+        top = candidates[0]
+        return {
+            **state,
+            "vendor_name": top["name"],
+            "vendor_phone": top["phone"],
+            "vendor_email": None,
+            "researched_candidates": candidates,
+            "ai_reasoning": reasoning,
+        }
+    else:
+        reasoning.append("⚠️ No vendors found via Google Places — manual assignment needed")
+        return {**state, "researched_candidates": [], "ai_reasoning": reasoning}
+
+
+def outreach_vendors(state: dict) -> dict:
+    """SMS all researched vendor candidates asking for availability."""
+    candidates = state.get("researched_candidates", [])
+    urgency = state.get("urgency", "Medium")
+    request_id = state.get("request_id", "")
+
+    msg = (
+        f"Hi, this is Tobin AI (property maintenance coordination). "
+        f"We have a {urgency} {state.get('category', 'general')} job at "
+        f"{state['property_address']} Unit {state['apartment_unit']}. "
+        f"Are you available? Reply YES or NO. Ref: {request_id}"
+    )
+
+    reached = 0
+    for vendor in candidates:
+        if vendor.get("phone"):
+            try:
+                send_sms(vendor["phone"], msg)
+                reached += 1
+            except Exception as e:
+                print(f"Outreach SMS failed for {vendor['name']}: {e}")
+
+    reasoning = state.get("ai_reasoning", [])
+    reasoning.append(f"📲 Outreach sent to {reached} vendor(s) — awaiting reply")
     return {**state, "ai_reasoning": reasoning}
 
 

@@ -6,6 +6,8 @@ from nodes import (
     generate_reference,
     notify_tenant,
     notify_vendor,
+    research_vendors,
+    outreach_vendors,
     update_db,
 )
 
@@ -34,6 +36,15 @@ class TobinState(TypedDict):
     vendor_email: Optional[str]
     # Tracking
     ai_reasoning: list[str]
+    # Vendor research
+    researched_candidates: Optional[list]
+
+
+def _route_after_analysis(state: dict) -> str:
+    """If AI found a vendor in DB, proceed normally. Otherwise research externally."""
+    if state.get("vendor_phone"):
+        return "generate_reference"
+    return "research_vendors"
 
 
 def build_graph():
@@ -41,6 +52,8 @@ def build_graph():
 
     workflow.add_node("save_initial_request", save_initial_request)
     workflow.add_node("analyze_issue", analyze_issue)
+    workflow.add_node("research_vendors", research_vendors)
+    workflow.add_node("outreach_vendors", outreach_vendors)
     workflow.add_node("generate_reference", generate_reference)
     workflow.add_node("notify_tenant", notify_tenant)
     workflow.add_node("notify_vendor", notify_vendor)
@@ -48,7 +61,15 @@ def build_graph():
 
     workflow.set_entry_point("save_initial_request")
     workflow.add_edge("save_initial_request", "analyze_issue")
-    workflow.add_edge("analyze_issue", "generate_reference")
+
+    # If DB vendor found → skip research. If not → research + outreach first.
+    workflow.add_conditional_edges("analyze_issue", _route_after_analysis, {
+        "generate_reference": "generate_reference",
+        "research_vendors": "research_vendors",
+    })
+    workflow.add_edge("research_vendors", "outreach_vendors")
+    workflow.add_edge("outreach_vendors", "generate_reference")
+
     workflow.add_edge("generate_reference", "notify_tenant")
     workflow.add_edge("notify_tenant", "notify_vendor")
     workflow.add_edge("notify_vendor", "update_db")
