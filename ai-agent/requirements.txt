@@ -14,7 +14,7 @@ psycopg2-binary==2.9.9
 
 # Notifications
 twilio==9.3.0
-aiosmtplib==3.0.1
+agentmail
 
 # Validation + config
 pydantic==2.9.0

@@ -1,9 +1,8 @@
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import psycopg2.extras
 from langchain_core.tools import tool
 from twilio.rest import Client as TwilioClient
+from agentmail import AgentMail
 from db import get_conn
 
 twilio_client = TwilioClient(
@@ -11,6 +10,9 @@ twilio_client = TwilioClient(
     os.getenv("TWILIO_AUTH_TOKEN"),
 )
 TWILIO_FROM = os.getenv("TWILIO_PHONE_NUMBER", "+12064893667")
+
+_agentmail = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+TOBIN_INBOX_ID = os.getenv("AGENTMAIL_INBOX_ID")
 
 
 @tool
@@ -50,16 +52,9 @@ def send_sms(to: str, message: str) -> None:
 
 
 def send_email(to: str, subject: str, html_body: str) -> None:
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = os.getenv("FROM_EMAIL", "jsoh0118@gmail.com")
-    msg["To"] = to
-    msg.attach(MIMEText(html_body, "html"))
-
-    with smtplib.SMTP(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT", "587"))) as server:
-        server.starttls()
-        server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
-        server.sendmail(msg["From"], to, msg.as_string())
-
-
-import psycopg2.extras
+    _agentmail.inboxes.messages.send(
+        TOBIN_INBOX_ID,
+        to=to,
+        subject=subject,
+        html=html_body,
+    )
