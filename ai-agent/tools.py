@@ -12,7 +12,13 @@ twilio_client = TwilioClient(
 TWILIO_FROM = os.getenv("TWILIO_PHONE_NUMBER", "+12064893667")
 
 _agentmail = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
-TOBIN_INBOX_ID = os.getenv("AGENTMAIL_INBOX_ID")
+
+
+def _inbox_id() -> str:
+    val = os.getenv("AGENTMAIL_INBOX_ID")
+    if not val:
+        raise RuntimeError("AGENTMAIL_INBOX_ID not set — run setup_inbox.py first")
+    return val
 
 
 @tool
@@ -53,7 +59,7 @@ def send_sms(to: str, message: str) -> None:
 
 def send_email(to: str, subject: str, html_body: str) -> None:
     _agentmail.inboxes.messages.send(
-        TOBIN_INBOX_ID,
+        _inbox_id(),
         to=to,
         subject=subject,
         html=html_body,
