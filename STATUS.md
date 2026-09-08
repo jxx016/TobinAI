@@ -11,7 +11,7 @@ Stable product context lives in `AGENTS.md`. This file is the **live** coordinat
 ---
 
 ## Now (one paragraph)
-Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:** https://github.com/jxx016/TobinAI (private). Places cold SMS is gated (`AUTO_OUTREACH=false` + approve webhook). Hosting + `VITE_API_URL` still needed for a real pilot.
+Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:** https://github.com/jxx016/TobinAI (private). Places cold SMS is gated (`AUTO_OUTREACH=false` + approve webhook). **Host on Render** (see `ai-agent/RENDER.md`) + set `VITE_API_URL`.
 
 ## Active
 | Agent | Task | Started (local) | Notes |
@@ -22,7 +22,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 | Item | Waiting on | Since |
 |------|------------|-------|
 | Cursor cloud agent | Connect GitHub account `jxx016` to Cursor (or grant Cursor access to TobinAI) | 2026-09-09 |
-| Public pilot URL | Host FastAPI `ai-agent` + set `VITE_API_URL` | 2026-09-08 |
+| Public pilot URL | Deploy `ai-agent` on Render + set `VITE_API_URL` | 2026-09-09 |
 
 ## Done (newest first)
 | When | Agent | What |
@@ -40,6 +40,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 5. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-09 Grok Bot: Switched agent hosting plan to **Render** (Railway needs paid). Added `render.yaml` + `ai-agent/RENDER.md`. Deploy via dashboard; free tier cold-starts.
 - 2026-09-09 Grok Bot: Chose Railway for hosting. Dockerfile PORT-aware + railway.toml added under ai-agent/. Awaiting `railway login` on Mac.
 - 2026-09-09 Cursor: Places path saves `vendor_outreach` with `sent_at=NULL`, status `awaiting_vendor_approval`, emails `LANDLORD_EMAIL`. Approve: `POST /webhook/approve-outreach` JSON `{"request_id":"TM-..."}` header `X-Tobin-Approve-Key`. Repeat calls do not re-SMS. Set `APPROVE_SECRET` before using the webhook (empty secret → 401).
 - 2026-09-09 Grok Bot: GitHub remote live. Cloud agent launch failed — Cursor’s connected GitHub can’t access `jxx016/TobinAI`. Use local Cursor/Claude/Codex with paste prompt, or connect `jxx016` to Cursor.
