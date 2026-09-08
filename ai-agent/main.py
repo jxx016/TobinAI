@@ -61,6 +61,8 @@ async def maintenance_request(req: MaintenanceRequest):
             ai_reasoning=result.get("ai_reasoning", []),
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 

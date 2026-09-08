@@ -62,7 +62,7 @@ def save_initial_request(state: dict) -> dict:
 
 def analyze_issue(state: dict) -> dict:
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-flash",
         google_api_key=os.getenv("GEMINI_API_KEY"),
         temperature=0,
     )
