@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Optional
+from settings import auto_outreach_enabled
 from nodes import (
     save_initial_request,
     analyze_issue,
@@ -38,6 +39,7 @@ class TobinState(TypedDict):
     ai_reasoning: list[str]
     # Vendor research
     researched_candidates: Optional[list]
+    status: Optional[str]
 
 
 def _route_after_analysis(state: dict) -> str:
@@ -45,6 +47,13 @@ def _route_after_analysis(state: dict) -> str:
     if state.get("vendor_phone"):
         return "generate_reference"
     return "research_vendors"
+
+
+def _route_after_research(state: dict) -> str:
+    """Cold Places SMS only when AUTO_OUTREACH is explicitly true."""
+    if auto_outreach_enabled() and state.get("researched_candidates"):
+        return "outreach_vendors"
+    return "generate_reference"
 
 
 def build_graph():
@@ -62,12 +71,15 @@ def build_graph():
     workflow.set_entry_point("save_initial_request")
     workflow.add_edge("save_initial_request", "analyze_issue")
 
-    # If DB vendor found → skip research. If not → research + outreach first.
+    # If DB vendor found → skip research. If not → research; outreach only if AUTO_OUTREACH.
     workflow.add_conditional_edges("analyze_issue", _route_after_analysis, {
         "generate_reference": "generate_reference",
         "research_vendors": "research_vendors",
     })
-    workflow.add_edge("research_vendors", "outreach_vendors")
+    workflow.add_conditional_edges("research_vendors", _route_after_research, {
+        "outreach_vendors": "outreach_vendors",
+        "generate_reference": "generate_reference",
+    })
     workflow.add_edge("outreach_vendors", "generate_reference")
 
     workflow.add_edge("generate_reference", "notify_tenant")

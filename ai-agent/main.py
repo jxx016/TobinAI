@@ -2,13 +2,19 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
-from models import MaintenanceRequest, MaintenanceResponse, StatusResponse
+from models import MaintenanceRequest, MaintenanceResponse, StatusResponse, ApproveOutreachRequest
 from graph import graph
 from db import get_conn
 from tools import send_sms
-from vendor_research import mark_vendor_accepted, mark_vendor_declined, get_pending_outreach
+from vendor_research import (
+    mark_vendor_accepted,
+    mark_vendor_declined,
+    get_pending_outreach,
+    send_unsent_outreach,
+)
+from settings import approve_key_ok
 import psycopg2.extras
 
 app = FastAPI(title="Tobin AI", version="2.0.0")
@@ -49,6 +55,7 @@ async def maintenance_request(req: MaintenanceRequest):
             "vendor_email": None,
             "ai_reasoning": [],
             "researched_candidates": None,
+            "status": None,
         })
 
         return MaintenanceResponse(
@@ -165,3 +172,41 @@ async def check_status(ref: str):
         property=row["property_address"],
         unit=row["apartment_unit"],
     )
+
+
+@app.post("/webhook/approve-outreach")
+async def approve_outreach(
+    body: ApproveOutreachRequest,
+    x_tobin_approve_key: str | None = Header(default=None, alias="X-Tobin-Approve-Key"),
+):
+    """Send pending Places outreach SMS after a human approves the candidate list."""
+    if not approve_key_ok(x_tobin_approve_key):
+        raise HTTPException(status_code=401, detail="Invalid or missing approve key")
+
+    request_id = body.request_id.strip()
+    if not request_id:
+        raise HTTPException(status_code=400, detail="request_id is required")
+
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT request_id, status FROM maintenance_requests WHERE request_id = %s",
+                (request_id,),
+            )
+            row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    sent = send_unsent_outreach(request_id)
+    return {
+        "success": True,
+        "request_id": request_id,
+        "sms_sent": sent,
+        "idempotent": sent == 0,
+        "message": (
+            f"Sent outreach SMS to {sent} vendor(s)"
+            if sent
+            else "No unsent Places outreach (already sent or none pending)"
+        ),
+    }

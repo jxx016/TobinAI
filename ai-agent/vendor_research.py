@@ -1,6 +1,5 @@
 import os
 import requests
-from langchain_core.tools import tool
 from db import get_conn
 import psycopg2.extras
 
@@ -58,17 +57,21 @@ def search_vendors_nearby(category: str, address: str) -> list[dict]:
 
 
 def save_outreach_candidates(request_id: str, candidates: list[dict], source: str) -> None:
+    """Persist Places candidates. sent_at stays NULL until SMS is actually sent."""
     with get_conn() as conn:
         with conn.cursor() as cur:
             for v in candidates:
+                phone = v.get("phone")
+                if not phone:
+                    continue
                 cur.execute(
                     """
                     INSERT INTO vendor_outreach
-                      (request_id, vendor_phone, vendor_name, source, place_id)
-                    VALUES (%s, %s, %s, %s, %s)
+                      (request_id, vendor_phone, vendor_name, source, place_id, sent_at)
+                    VALUES (%s, %s, %s, %s, %s, NULL)
                     ON CONFLICT DO NOTHING
                     """,
-                    (request_id, v.get("phone"), v.get("name"), source, v.get("place_id")),
+                    (request_id, phone, v.get("name"), source, v.get("place_id")),
                 )
 
 
@@ -111,3 +114,75 @@ def mark_vendor_declined(outreach_id: int) -> None:
                 """,
                 (outreach_id,),
             )
+
+
+def send_unsent_outreach(request_id: str) -> int:
+    """SMS vendor_outreach rows with sent_at IS NULL. Idempotent: already-sent rows are skipped."""
+    from tools import send_sms
+
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT request_id, tenant_name, tenant_phone, property_address,
+                       apartment_unit, urgency, category, summary
+                FROM maintenance_requests
+                WHERE request_id = %s
+                """,
+                (request_id,),
+            )
+            req = cur.fetchone()
+            if not req:
+                return 0
+
+            cur.execute(
+                """
+                SELECT id, vendor_phone, vendor_name
+                FROM vendor_outreach
+                WHERE request_id = %s AND sent_at IS NULL
+                ORDER BY id ASC
+                FOR UPDATE
+                """,
+                (request_id,),
+            )
+            pending = [dict(r) for r in cur.fetchall()]
+
+            urgency = req.get("urgency") or "Medium"
+            category = req.get("category") or "general"
+            msg = (
+                f"Hi, this is Tobin AI (property maintenance coordination). "
+                f"We have a {urgency} {category} job at "
+                f"{req['property_address']} Unit {req['apartment_unit']}. "
+                f"Are you available? Reply YES or NO. Ref: {request_id}"
+            )
+
+            sent = 0
+            for vendor in pending:
+                phone = vendor.get("vendor_phone")
+                if not phone:
+                    continue
+                try:
+                    send_sms(phone, msg)
+                    cur.execute(
+                        """
+                        UPDATE vendor_outreach
+                        SET sent_at = NOW()
+                        WHERE id = %s AND sent_at IS NULL
+                        """,
+                        (vendor["id"],),
+                    )
+                    sent += 1
+                except Exception as e:
+                    print(f"Outreach SMS failed for {vendor.get('vendor_name')}: {e}")
+
+            if sent:
+                cur.execute(
+                    """
+                    UPDATE maintenance_requests
+                    SET status = 'vendor_outreach_sent', last_updated_at = NOW()
+                    WHERE request_id = %s
+                    """,
+                    (request_id,),
+                )
+
+            return sent

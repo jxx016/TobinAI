@@ -30,3 +30,7 @@ class StatusResponse(BaseModel):
     submitted: Optional[str] = None
     property: Optional[str] = None
     unit: Optional[str] = None
+
+
+class ApproveOutreachRequest(BaseModel):
+    request_id: str
