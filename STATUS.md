@@ -11,32 +11,33 @@ Stable product context lives in `AGENTS.md`. This file is the **live** coordinat
 ---
 
 ## Now (one paragraph)
-Supervised single-landlord pilot path. LangGraph agent on `feat/vendor-research` is the product. **P0:** human approve gate before cold Places vendor SMS. Repo still **local-only** (no git remote). Hosting + `VITE_API_URL` still needed for a real pilot.
+Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:** https://github.com/jxx016/TobinAI (private). **P0:** human approve gate before cold Places vendor SMS. Hosting + `VITE_API_URL` still needed for a real pilot.
 
 ## Active
 | Agent | Task | Started (local) | Notes |
 |-------|------|-----------------|-------|
-| — | — | — | nothing claimed |
+| — | Vendor approve gate (unclaimed) | — | Cloud agent blocked: Cursor GitHub account can’t see `jxx016/TobinAI` yet |
 
 ## Blocked
 | Item | Waiting on | Since |
 |------|------------|-------|
-| Cursor cloud agent on this repo | GitHub remote | 2026-09-08 |
+| Cursor cloud agent | Connect GitHub account `jxx016` to Cursor (or grant Cursor access to TobinAI) | 2026-09-09 |
 | Public pilot URL | Host FastAPI `ai-agent` + set `VITE_API_URL` | 2026-09-08 |
 
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
-| 2026-09-08 | Grok Bot | Launch-readiness review; created `AGENTS.md` |
+| 2026-09-09 | Grok Bot | Pushed private repo https://github.com/jxx016/TobinAI (`main` + `feat/vendor-research`) |
 | 2026-09-09 | Grok Bot | Created this `STATUS.md` shared board |
+| 2026-09-08 | Grok Bot | Launch-readiness review; created `AGENTS.md` |
 
 ## Next up (priority order)
-1. **Vendor approve gate** — pause before `outreach_vendors` / cold SMS; approve endpoint or landlord email link (`AUTO_OUTREACH=false` default)
-2. **Push to GitHub** — add remote, push `feat/vendor-research`
-3. **Host `ai-agent`** — Dockerfile → public HTTPS
-4. **Point frontend** — production `VITE_API_URL`
-5. **Supervised live ticket** — DB vendor only, John watching Twilio
-6. Later: archive Express/`n8n` leftovers; refresh README
+1. **Vendor approve gate** — pause before `outreach_vendors` / cold SMS; `AUTO_OUTREACH=false` + approve webhook
+2. **Host `ai-agent`** — Dockerfile → public HTTPS
+3. **Point frontend** — production `VITE_API_URL`
+4. **Supervised live ticket** — DB vendor only, John watching Twilio
+5. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
-- 2026-09-09 Grok Bot: John switches Cursor ↔ Claude ↔ Codex for code; Grok Bot owns product/pilot and keeps these files current. Coding agents should append here when they stop mid-task.
+- 2026-09-09 Grok Bot: GitHub remote live. Cloud agent launch failed — Cursor’s connected GitHub can’t access `jxx016/TobinAI`. Use local Cursor/Claude/Codex with paste prompt, or connect `jxx016` to Cursor.
+- 2026-09-09 Grok Bot: John switches Cursor ↔ Claude ↔ Codex for code; Grok Bot owns product/pilot.
