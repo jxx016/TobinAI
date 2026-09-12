@@ -16,17 +16,19 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 ## Active
 | Agent | Task | Started (local) | Notes |
 |-------|------|-----------------|-------|
-| Cursor cloud | JOH-5 Netlify SPA `_redirects` | 2026-09-12 05:04 UTC | Branch `cursor/joh-5-netlify-spa-redirects-148c`; PR → feat/vendor-research |
+| — | — | — | — |
 
 ## Blocked
 | Item | Waiting on | Since |
 |------|------------|-------|
+| JOH-5 live SPA routes | John: merge PR #1 + redeploy Netlify `dist/public` with `_redirects` | 2026-09-12 |
 | Cursor cloud agent | Connect GitHub account `jxx016` to Cursor (or grant Cursor access to TobinAI) | 2026-09-09 |
 | Public pilot URL | Deploy `ai-agent` on Render + set `VITE_API_URL` | 2026-09-09 |
 
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
 | 2026-09-09 | Cursor (Grok) | Vendor approve gate: `AUTO_OUTREACH=false` default, landlord email, `POST /webhook/approve-outreach` + `X-Tobin-Approve-Key`; DB vendors still notify; Places SMS only after approve |
 | 2026-09-09 | Grok Bot | Pushed private repo https://github.com/jxx016/TobinAI (`main` + `feat/vendor-research`) |
 | 2026-09-09 | Grok Bot | Created this `STATUS.md` shared board |
