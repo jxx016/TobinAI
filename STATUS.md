@@ -16,7 +16,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 ## Active
 | Agent | Task | Started (local) | Notes |
 |-------|------|-----------------|-------|
-| — | — | — | — |
+| Cursor cloud | JOH-5 Netlify SPA `_redirects` | 2026-09-12 05:04 UTC | Branch `cursor/joh-5-netlify-spa-redirects-148c`; PR → feat/vendor-research |
 
 ## Blocked
 | Item | Waiting on | Since |
