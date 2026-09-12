@@ -11,7 +11,7 @@ Stable product context lives in `AGENTS.md`. This file is the **live** coordinat
 ---
 
 ## Now (one paragraph)
-Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:** https://github.com/jxx016/TobinAI (private). Places cold SMS is gated (`AUTO_OUTREACH=false` + approve webhook). **Host on Render** (see `ai-agent/RENDER.md`) + set `VITE_API_URL`.
+Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API live:** https://tobinai.onrender.com (`/health` 200). Built Netlify JS already posts to Render (not localhost). **Sell form still blocked:** `/submit-request` and `/check-status` 404 until John redeploys Netlify with `_redirects` (source merged in PR #1). Places gate code is deployed; JOH-7 smoke took the **DB vendor path**, not Places. JOH-8 offer one-pager is in `docs/pilot-offer.md` (2 weeks free → $99/mo).
 
 ## Active
 | Agent | Task | Started (local) | Notes |
@@ -21,13 +21,14 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 ## Blocked
 | Item | Waiting on | Since |
 |------|------------|-------|
-| JOH-5 live SPA routes | John: merge PR #1 + redeploy Netlify `dist/public` with `_redirects` | 2026-09-12 |
-| Cursor cloud agent | Connect GitHub account `jxx016` to Cursor (or grant Cursor access to TobinAI) | 2026-09-09 |
-| Public pilot URL | Deploy `ai-agent` on Render + set `VITE_API_URL` | 2026-09-09 |
+| JOH-5 live SPA routes | John: **PR #1 already merged** — redeploy Netlify `dist/public` with `_redirects` (live still 404) | 2026-09-12 |
+| JOH-6 `sent_at` default | John: run `ai-agent/migrations/002_outreach_sent_at.sql` in Supabase (not verified) | 2026-09-12 |
+| Places-path smoke | Sample vendors cover all specialties, so live tickets match DB vendors and skip Places / landlord-approve email | 2026-09-12 |
 
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
 | 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
 | 2026-09-09 | Cursor (Grok) | Vendor approve gate: `AUTO_OUTREACH=false` default, landlord email, `POST /webhook/approve-outreach` + `X-Tobin-Approve-Key`; DB vendors still notify; Places SMS only after approve |
@@ -36,14 +37,15 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 | 2026-09-08 | Grok Bot | Launch-readiness review; created `AGENTS.md` |
 
 ## Next up (priority order)
-1. **Send `docs/pilot-offer.md`** — first landlord ask (2 weeks free → $99/mo)
-2. **Host `ai-agent`** — Dockerfile → public HTTPS
-3. **Point frontend** — production `VITE_API_URL`
-4. **Set `APPROVE_SECRET`** in `ai-agent/.env` (and run `migrations/002_outreach_sent_at.sql` in Supabase if needed)
-5. **Supervised live ticket** — DB vendor only, John watching Twilio
+1. **Redeploy Netlify** with `_redirects` (JOH-5 live) — sell form still 404
+2. **Send `docs/pilot-offer.md`** — first landlord ask (2 weeks free → $99/mo)
+3. **Confirm JOH-6** applied in Supabase (`sent_at` DROP DEFAULT)
+4. **Supervised live ticket** — DB vendor only, John watching Twilio (sample vendor "City Plumbing Co" was used by JOH-7 smoke)
+5. **Places-path proof** — only after sample/preferred vendors would *not* match (or temporarily deactivate them); do not approve-outreach without John + `APPROVE_SECRET`
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-12 Cursor cloud (JOH-7): **No-Go for sell demo** until Netlify SPA routes are live. **Conditional Go for API-only supervised pilot** (Render + DB vendors). Smoke POST `TM-20260912-0006` succeeded; check-status found it (`status=pending`). Reasoning claimed tenant+vendor SMS; phones were `+15555550100` (tenant) and schema sample `+15552345678` (City Plumbing Co) — Twilio almost certainly rejected both. Places / landlord-approve email **not** exercised because Gemini matched a DB vendor. Approve webhook without key → 401 (did not call with secret). Repo landing app source is now only `_redirects` files after PR #1 (submodule removed) — rebuild from this tree will not recreate the live SPA. Full write-up in Linear JOH-7.
 - 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).
 - 2026-09-09 Grok Bot: Switched agent hosting plan to **Render** (Railway needs paid). Added `render.yaml` + `ai-agent/RENDER.md`. Deploy via dashboard; free tier cold-starts.
