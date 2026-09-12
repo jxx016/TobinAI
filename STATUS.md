@@ -28,6 +28,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
 | 2026-09-09 | Cursor (Grok) | Vendor approve gate: `AUTO_OUTREACH=false` default, landlord email, `POST /webhook/approve-outreach` + `X-Tobin-Approve-Key`; DB vendors still notify; Places SMS only after approve |
 | 2026-09-09 | Grok Bot | Pushed private repo https://github.com/jxx016/TobinAI (`main` + `feat/vendor-research`) |
@@ -35,13 +36,15 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **GitHub:
 | 2026-09-08 | Grok Bot | Launch-readiness review; created `AGENTS.md` |
 
 ## Next up (priority order)
-1. **Host `ai-agent`** — Dockerfile → public HTTPS
-2. **Point frontend** — production `VITE_API_URL`
-3. **Set `APPROVE_SECRET`** in `ai-agent/.env` (and run `migrations/002_outreach_sent_at.sql` in Supabase if needed)
-4. **Supervised live ticket** — DB vendor only, John watching Twilio
-5. Later: archive Express/`n8n` leftovers; refresh README
+1. **Send `docs/pilot-offer.md`** — first landlord ask (2 weeks free → $99/mo)
+2. **Host `ai-agent`** — Dockerfile → public HTTPS
+3. **Point frontend** — production `VITE_API_URL`
+4. **Set `APPROVE_SECRET`** in `ai-agent/.env` (and run `migrations/002_outreach_sent_at.sql` in Supabase if needed)
+5. **Supervised live ticket** — DB vendor only, John watching Twilio
+6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).
 - 2026-09-09 Grok Bot: Switched agent hosting plan to **Render** (Railway needs paid). Added `render.yaml` + `ai-agent/RENDER.md`. Deploy via dashboard; free tier cold-starts.
 - 2026-09-09 Grok Bot: Chose Railway for hosting. Dockerfile PORT-aware + railway.toml added under ai-agent/. Awaiting `railway login` on Mac.
