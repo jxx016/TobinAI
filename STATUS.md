@@ -11,7 +11,7 @@ Stable product context lives in `AGENTS.md`. This file is the **live** coordinat
 ---
 
 ## Now (one paragraph)
-Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API live:** https://tobinai.onrender.com (`/health` 200). Built Netlify JS already posts to Render (not localhost). **Sell form still blocked:** `/submit-request` and `/check-status` 404 until John redeploys Netlify with `_redirects` (source merged in PR #1). Places gate code is deployed; JOH-7 smoke took the **DB vendor path**, not Places. JOH-8 offer one-pager is in `docs/pilot-offer.md` (2 weeks free → $99/mo).
+Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API live:** https://tobinai.onrender.com (`/health` 200). Built Netlify JS already posts to Render (not localhost). **Sell form still blocked:** `/submit-request` and `/check-status` 404 until John redeploys Netlify with `_redirects` (source merged in PR #1). Places gate code is deployed; JOH-7 smoke took the **DB vendor path**, not Places. JOH-8 offer one-pager is in `docs/pilot-offer.md` (2 weeks free → $99/mo). **Tobin Acquire** (voice+SMS buying-desk exploration) is docs-only in `docs/tobin-acquire-brainstorm.md` — not a P0 vs the ops pilot; John must answer §J before any spike.
 
 ## Active
 | Agent | Task | Started (local) | Notes |
@@ -28,6 +28,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-15 | Cursor cloud | Tobin Acquire brainstorm (docs only): `docs/tobin-acquire-brainstorm.md`. Supervised desk; MLS scrape challenged; Conditional Go only with approve+TCPA/DNC+disclosed AI. No app code. |
 | 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
 | 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
@@ -45,6 +46,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-15 Cursor cloud: **Tobin Acquire is exploration, not the ops P0.** Doc: `docs/tobin-acquire-brainstorm.md`. Verdict: **Go** for United interview (inbound/consented, disclosed AI); **Conditional Go** for a supervised desk (licensed data, human approve before outbound, SMS-first, TCPA/DNC); **No-Go** for MLS/Zillow scrape or undisclosed robocall. John answers §J (purpose, entity/license, metro, hold vs wholesale, counsel) before any spike. Do not touch `ai-agent/` runtime for this.
 - 2026-09-12 Cursor cloud (JOH-7): **No-Go for sell demo** until Netlify SPA routes are live. **Conditional Go for API-only supervised pilot** (Render + DB vendors). Smoke POST `TM-20260912-0006` succeeded; check-status found it (`status=pending`). Reasoning claimed tenant+vendor SMS; phones were `+15555550100` (tenant) and schema sample `+15552345678` (City Plumbing Co) — Twilio almost certainly rejected both. Places / landlord-approve email **not** exercised because Gemini matched a DB vendor. Approve webhook without key → 401 (did not call with secret). Repo landing app source is now only `_redirects` files after PR #1 (submodule removed) — rebuild from this tree will not recreate the live SPA. Full write-up in Linear JOH-7.
 - 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).
