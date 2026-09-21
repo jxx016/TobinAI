@@ -60,7 +60,17 @@ def test_notify_tenant_failure_does_not_claim_sent(monkeypatch):
     ]
 
 
-def test_notify_tenant_success_claims_sent(monkeypatch):
+def test_notify_tenant_missing_twilio_env_does_not_claim_sent_or_call_network(monkeypatch):
+    """Real send_sms, no mock: missing env must fail locally (no Twilio HTTP)."""
+    monkeypatch.delenv("TWILIO_ACCOUNT_SID", raising=False)
+    monkeypatch.delenv("TWILIO_AUTH_TOKEN", raising=False)
+
+    out = notify_tenant(_tenant_state())
+    joined = "\n".join(out["ai_reasoning"])
+    assert "Tenant SMS sent" not in joined
+    assert "❌" in joined
+    assert out["notifications"][0]["ok"] is False
+    assert "TWILIO_ACCOUNT_SID" in (out["notifications"][0]["error"] or "")
     called = {}
 
     def ok(to, msg):

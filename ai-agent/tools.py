@@ -5,13 +5,26 @@ from twilio.rest import Client as TwilioClient
 from agentmail import AgentMail
 from db import get_conn
 
-twilio_client = TwilioClient(
-    os.getenv("TWILIO_ACCOUNT_SID"),
-    os.getenv("TWILIO_AUTH_TOKEN"),
-)
-TWILIO_FROM = os.getenv("TWILIO_PHONE_NUMBER", "+12064893667")
 
-_agentmail = AgentMail(api_key=os.getenv("AGENTMAIL_API_KEY"))
+def _twilio_client():
+    sid = (os.getenv("TWILIO_ACCOUNT_SID") or "").strip()
+    token = (os.getenv("TWILIO_AUTH_TOKEN") or "").strip()
+    if not sid or not token:
+        raise RuntimeError(
+            "Twilio not configured: TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN must be set"
+        )
+    return TwilioClient(sid, token)
+
+
+def _twilio_from() -> str:
+    return os.getenv("TWILIO_PHONE_NUMBER", "+12064893667")
+
+
+def _agentmail_client():
+    key = (os.getenv("AGENTMAIL_API_KEY") or "").strip()
+    if not key:
+        raise RuntimeError("AgentMail not configured: AGENTMAIL_API_KEY must be set")
+    return AgentMail(api_key=key)
 
 
 def _inbox_id() -> str:
@@ -54,11 +67,11 @@ def lookup_vendor_by_specialty(specialty: str) -> str:
 
 def send_sms(to: str, message: str) -> None:
     to = to.rstrip("!").strip()
-    twilio_client.messages.create(body=message, from_=TWILIO_FROM, to=to)
+    _twilio_client().messages.create(body=message, from_=_twilio_from(), to=to)
 
 
 def send_email(to: str, subject: str, html_body: str) -> None:
-    _agentmail.inboxes.messages.send(
+    _agentmail_client().inboxes.messages.send(
         _inbox_id(),
         to=to,
         subject=subject,
