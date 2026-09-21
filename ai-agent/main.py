@@ -17,6 +17,12 @@ from vendor_research import (
 from settings import approve_key_ok
 import psycopg2.extras
 
+
+def _env_present(*names: str) -> bool:
+    """True when every named env var is set and non-empty. Never returns the values."""
+    return all(bool((os.getenv(n) or "").strip()) for n in names)
+
+
 app = FastAPI(title="Tobin AI", version="2.0.0")
 
 app.add_middleware(
@@ -29,7 +35,15 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "tobin-ai"}
+    return {
+        "status": "ok",
+        "service": "tobin-ai",
+        "twilio_configured": _env_present(
+            "TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMBER"
+        ),
+        "agentmail_configured": _env_present("AGENTMAIL_API_KEY", "AGENTMAIL_INBOX_ID"),
+        "landlord_email_configured": _env_present("LANDLORD_EMAIL"),
+    }
 
 
 @app.post("/webhook/maintenance-request", response_model=MaintenanceResponse)
@@ -54,6 +68,7 @@ async def maintenance_request(req: MaintenanceRequest):
             "vendor_phone": None,
             "vendor_email": None,
             "ai_reasoning": [],
+            "notifications": [],
             "researched_candidates": None,
             "status": None,
         })
@@ -66,6 +81,7 @@ async def maintenance_request(req: MaintenanceRequest):
             summary=result.get("summary", ""),
             estimated_time=result.get("estimated_time", "1-2hrs"),
             ai_reasoning=result.get("ai_reasoning", []),
+            notifications=result.get("notifications") or [],
         )
     except Exception as e:
         import traceback

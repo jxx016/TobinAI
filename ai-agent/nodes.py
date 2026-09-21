@@ -21,6 +21,54 @@ def _ensure_request_id(state: dict) -> str:
     return f"TM-{date_str}-{str(state['db_id']).zfill(4)}"
 
 
+def _append_notification(
+    state: dict,
+    *,
+    channel: str,
+    to: str | None,
+    ok: bool,
+    error: str | None,
+    reason: str,
+) -> dict:
+    """Record a notify attempt and the matching ai_reasoning line (never claim sent on failure)."""
+    notifications = [dict(n) for n in (state.get("notifications") or [])]
+    reasoning = list(state.get("ai_reasoning") or [])
+    notifications.append({"channel": channel, "to": to, "ok": ok, "error": error})
+    reasoning.append(reason)
+    return {**state, "notifications": notifications, "ai_reasoning": reasoning}
+
+
+def _send_and_record(
+    state: dict,
+    *,
+    channel: str,
+    to: str | None,
+    send,
+    success_line: str,
+    fail_prefix: str,
+) -> dict:
+    try:
+        send()
+    except Exception as e:
+        print(f"{fail_prefix}: {e}")
+        return _append_notification(
+            state,
+            channel=channel,
+            to=to,
+            ok=False,
+            error=str(e),
+            reason=f"❌ {fail_prefix}: {e}",
+        )
+    return _append_notification(
+        state,
+        channel=channel,
+        to=to,
+        ok=True,
+        error=None,
+        reason=success_line,
+    )
+
+
 SYSTEM_PROMPT = """You are Tobin, a professional maintenance coordination assistant for landlords.
 
 For each maintenance request you must:
@@ -67,7 +115,12 @@ def save_initial_request(state: dict) -> dict:
             )
             row = cur.fetchone()
 
-    return {**state, "db_id": row["id"], "ai_reasoning": ["📝 Request saved to database"]}
+    return {
+        **state,
+        "db_id": row["id"],
+        "ai_reasoning": ["📝 Request saved to database"],
+        "notifications": list(state.get("notifications") or []),
+    }
 
 
 def analyze_issue(state: dict) -> dict:
@@ -142,20 +195,21 @@ def notify_tenant(state: dict) -> dict:
             f"(Issue: {state['issue_description']}) at {state['property_address']}. "
             f"We're contacting a vendor now. Ref: {state['request_id']} - Tobin AI"
         )
-    try:
-        send_sms(state["tenant_phone"], msg)
-    except Exception as e:
-        print(f"Tenant SMS failed: {e}")
-
-    reasoning = state.get("ai_reasoning", [])
-    reasoning.append(f"📱 Tenant SMS sent to {state['tenant_phone']}")
-    return {**state, "ai_reasoning": reasoning}
+    phone = state["tenant_phone"]
+    return _send_and_record(
+        state,
+        channel="sms",
+        to=phone,
+        send=lambda: send_sms(phone, msg),
+        success_line=f"📱 Tenant SMS sent to {phone}",
+        fail_prefix=f"Tenant SMS failed to {phone}",
+    )
 
 
 def notify_vendor(state: dict) -> dict:
     # Places cold outreach is outreach_vendors / approve-outreach only.
     if state.get("researched_candidates") is not None:
-        reasoning = state.get("ai_reasoning", [])
+        reasoning = list(state.get("ai_reasoning") or [])
         if state.get("status") == "awaiting_vendor_approval":
             reasoning.append("⏸️ Vendor SMS skipped — awaiting human approval of Places candidates")
         else:
@@ -186,11 +240,16 @@ def notify_vendor(state: dict) -> dict:
             f"Reply YES to accept | Ref: {state['request_id']}"
         )
 
+    before = len(state.get("notifications") or [])
     if vendor_phone:
-        try:
-            send_sms(vendor_phone, sms_body)
-        except Exception as e:
-            print(f"Vendor SMS failed: {e}")
+        state = _send_and_record(
+            state,
+            channel="sms",
+            to=vendor_phone,
+            send=lambda: send_sms(vendor_phone, sms_body),
+            success_line=f"📨 Vendor SMS sent to {vendor_phone}",
+            fail_prefix=f"Vendor SMS failed to {vendor_phone}",
+        )
 
     if vendor_email:
         subject = f"[{urgency.upper()}] Maintenance - Unit {state['apartment_unit']} - {state['category'].upper()}"
@@ -205,14 +264,32 @@ def notify_vendor(state: dict) -> dict:
         <hr/>
         <p><strong>Tenant:</strong> {state['tenant_name']} — {state['tenant_phone']}</p>
         """
-        try:
-            send_email(vendor_email, subject, html)
-        except Exception as e:
-            print(f"Vendor email failed: {e}")
+        state = _send_and_record(
+            state,
+            channel="email",
+            to=vendor_email,
+            send=lambda: send_email(vendor_email, subject, html),
+            success_line=f"📧 Vendor email sent to {vendor_email}",
+            fail_prefix=f"Vendor email failed to {vendor_email}",
+        )
 
-    reasoning = state.get("ai_reasoning", [])
-    reasoning.append(f"📨 Vendor notified: {state.get('vendor_name', 'N/A')}")
-    return {**state, "ai_reasoning": reasoning}
+    new = (state.get("notifications") or [])[before:]
+    any_ok = any(n.get("ok") for n in new)
+    vendor_name = state.get("vendor_name", "N/A")
+    if any_ok:
+        reasoning = list(state.get("ai_reasoning") or [])
+        reasoning.append(f"📨 Vendor notified: {vendor_name}")
+        return {**state, "ai_reasoning": reasoning}
+    if not vendor_phone and not vendor_email:
+        return _append_notification(
+            state,
+            channel="sms",
+            to=None,
+            ok=False,
+            error="No vendor phone or email",
+            reason=f"❌ Vendor not notified ({vendor_name}): no phone or email",
+        )
+    return state
 
 
 def research_vendors(state: dict) -> dict:
@@ -235,8 +312,9 @@ def research_vendors(state: dict) -> dict:
 
     candidates = search_vendors_nearby(category, address)
 
-    reasoning = state.get("ai_reasoning", [])
+    reasoning = list(state.get("ai_reasoning") or [])
     reasoning.append(f"✅ Reference number: {request_id}")
+    notifications = [dict(n) for n in (state.get("notifications") or [])]
 
     if candidates:
         reasoning.append(f"🔎 Found {len(candidates)} vendors via Google Places")
@@ -257,7 +335,13 @@ def research_vendors(state: dict) -> dict:
                     """,
                     (status, state["db_id"]),
                 )
-        _email_landlord_approval(request_id, state, candidates)
+        emailed = _email_landlord_approval(
+            request_id,
+            {**state, "ai_reasoning": reasoning, "notifications": notifications},
+            candidates,
+        )
+        reasoning = emailed["ai_reasoning"]
+        notifications = emailed["notifications"]
         reasoning.append(
             f"⏸️ AUTO_OUTREACH=false — {len(candidates)} candidate(s) saved, "
             "awaiting approve-outreach (no vendor SMS)"
@@ -271,15 +355,23 @@ def research_vendors(state: dict) -> dict:
         "vendor_email": None,
         "researched_candidates": candidates,
         "status": status,
+        "notifications": notifications,
         "ai_reasoning": reasoning,
     }
 
 
-def _email_landlord_approval(request_id: str, state: dict, candidates: list) -> None:
+def _email_landlord_approval(request_id: str, state: dict, candidates: list) -> dict:
     landlord_email = os.getenv("LANDLORD_EMAIL")
     if not landlord_email:
         print("LANDLORD_EMAIL not set — skipped approval email")
-        return
+        return _append_notification(
+            state,
+            channel="email",
+            to=None,
+            ok=False,
+            error="LANDLORD_EMAIL not set",
+            reason="❌ Landlord approval email skipped — LANDLORD_EMAIL not set",
+        )
 
     rows = []
     for v in candidates:
@@ -305,14 +397,18 @@ def _email_landlord_approval(request_id: str, state: dict, candidates: list) -> 
     <code>/webhook/approve-outreach</code> with header
     <code>X-Tobin-Approve-Key</code>.</p>
     """
-    try:
-        send_email(
+    return _send_and_record(
+        state,
+        channel="email",
+        to=landlord_email,
+        send=lambda: send_email(
             landlord_email,
             f"Approve vendor outreach — {request_id}",
             html,
-        )
-    except Exception as e:
-        print(f"Landlord approval email failed: {e}")
+        ),
+        success_line=f"📧 Landlord approval email sent to {landlord_email}",
+        fail_prefix=f"Landlord approval email failed to {landlord_email}",
+    )
 
 
 def outreach_vendors(state: dict) -> dict:

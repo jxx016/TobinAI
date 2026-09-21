@@ -37,6 +37,8 @@ class TobinState(TypedDict):
     vendor_email: Optional[str]
     # Tracking
     ai_reasoning: list[str]
+    # Per-channel SMS/email outcomes (ok/error). Never imply delivery from HTTP 200.
+    notifications: list[dict]
     # Vendor research
     researched_candidates: Optional[list]
     status: Optional[str]

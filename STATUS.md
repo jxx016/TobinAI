@@ -16,7 +16,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Active
 | Agent | Task | Started (local) | Notes |
 |-------|------|-----------------|-------|
-| — | — | — | — |
+| Cursor cloud | Notify delivery honesty (Week Rock) | 2026-09-21 | Stop claiming SMS/email sent on swallowed Twilio/AgentMail failures; expose `notifications` on webhook response |
 
 ## Blocked
 | Item | Waiting on | Since |
