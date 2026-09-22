@@ -2,6 +2,17 @@
 
 TobinAI is an intelligent agent that helps landlords coordinate property repairs by automatically processing tenant repair requests and coordinating with service providers.
 
+## Pretotype Meta video (Concept D)
+
+Captioned ~25s ad for the Austin pilot. Files live in `docs/pretotype-ads/`. **Do not spend** until notify PR #5 is merged and Render is retested.
+
+| File | Use |
+|------|-----|
+| `docs/pretotype-ads/concept-d-video-1080x1920.mp4` | Stories / Reels (1080×1920) |
+| `docs/pretotype-ads/concept-d-video-1080.mp4` | Square feed (optional) |
+| `docs/pretotype-ads/COPY.md` | Primary text, headline, UTM `utm_content=concept_d_video` |
+| `docs/pretotype-ads/README.md` | How to download the mp4 and upload it in Meta Ads Manager |
+
 ## Features
 
 - 🤖 AI-powered repair request processing
