@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Render TobinAI pretotype Meta video, manager concept E v2.
+"""Render TobinAI pretotype Meta video, manager concept E v2b.
 
-Silent ~12s motion ad, captions burned in. Opens on notification spam,
-then "Tired of self-managing…", then delegate, then a geo-agnostic CTA.
-No city name.
+Same ~12s beats as v2. Caption tweak only: the delegate value line is
+"TobinAI helps you manage your maintenance coordination autonomously"
+plus "Powered by cutting-edge AI models". No city name.
 
-  vertical 1080x1920 → manager-concept-e-v2-1080x1920.mp4
-  square   1080x1080 → manager-concept-e-v2-1080.mp4
+  vertical 1080x1920 → manager-concept-e-v2b-1080x1920.mp4
+  square   1080x1080 → manager-concept-e-v2b-1080.mp4
 
 Usage:
   python3 docs/pretotype-ads/render_manager_concept_e.py
@@ -56,8 +56,8 @@ class Layout:
     outfile: str
 
 
-VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2-1080x1920.mp4")
-SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2-1080.mp4")
+VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2b-1080x1920.mp4")
+SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2b-1080.mp4")
 
 _FONTS: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 _BG: dict[str, Image.Image] = {}
@@ -422,24 +422,41 @@ def make_path_card(width: int, height: int, index: str, title: str, body: str, a
 def draw_delegate(local: float, layout: Layout) -> Image.Image:
     im = new_frame(layout)
     tall = layout.h > 1400
+    # Product line, wrapped so the full sentence stays on screen.
+    if tall:
+        value_lines = [
+            (0.04, "TobinAI helps you manage", 54, WHITE),
+            (0.16, "your maintenance coordination", 54, WHITE),
+            (0.28, "autonomously", 54, CYAN),
+        ]
+        y0, gap, ai_size, ai_y = 340, 66, 40, 580
+    else:
+        value_lines = [
+            (0.04, "TobinAI helps you manage", 40, WHITE),
+            (0.16, "your maintenance coordination", 40, WHITE),
+            (0.28, "autonomously", 40, CYAN),
+        ]
+        y0, gap, ai_size, ai_y = 136, 48, 30, 300
+    for i, (delay, text, size, color) in enumerate(value_lines):
+        fade_slide_text(
+            im,
+            text,
+            font(FONT_BOLD, size),
+            (layout.w / 2, y0 + i * gap),
+            color,
+            local,
+            delay,
+            rise=14,
+        )
     fade_slide_text(
         im,
-        "Delegate it.",
-        font(FONT_BOLD, 78 if tall else 56),
-        (layout.w / 2, layout.h * (0.22 if tall else 0.16)),
-        WHITE,
+        "Powered by cutting-edge AI models",
+        font(FONT_SEM, ai_size),
+        (layout.w / 2, ai_y),
+        CYAN,
         local,
-        0.05,
-    )
-    fade_slide_text(
-        im,
-        "Tobin coordinates the repair.",
-        font(FONT_REG, 32 if tall else 26),
-        (layout.w / 2, layout.h * (0.22 if tall else 0.16) + (78 if tall else 58)),
-        MUTED,
-        local,
-        0.25,
-        rise=14,
+        0.55,
+        rise=12,
     )
 
     if tall:
