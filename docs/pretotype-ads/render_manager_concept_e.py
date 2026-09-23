@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Render the TobinAI pretotype Meta video (manager concept E).
+"""Render TobinAI pretotype Meta video, manager concept E v2.
 
-Silent 24.5s motion ad, captions burned in.
-  vertical 1080x1920 → manager-concept-e-video-1080x1920.mp4
-  square   1080x1080 → manager-concept-e-video-1080.mp4
+Silent ~12s motion ad, captions burned in. Opens on notification spam,
+then "Tired of self-managing…", then delegate, then a geo-agnostic CTA.
+No city name.
+
+  vertical 1080x1920 → manager-concept-e-v2-1080x1920.mp4
+  square   1080x1080 → manager-concept-e-v2-1080.mp4
 
 Usage:
   python3 docs/pretotype-ads/render_manager_concept_e.py
@@ -22,7 +25,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 FPS = 30
-DURATION = 24.5
+DURATION = 12.0
 OUT_DIR = Path(__file__).resolve().parent
 
 FONT_REG = "/usr/share/fonts/truetype/macos/Inter-Regular.ttf"
@@ -53,8 +56,8 @@ class Layout:
     outfile: str
 
 
-VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-video-1080x1920.mp4")
-SQUARE = Layout("square", 1080, 1080, "manager-concept-e-video-1080.mp4")
+VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2-1080x1920.mp4")
+SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2-1080.mp4")
 
 _FONTS: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 _BG: dict[str, Image.Image] = {}
@@ -249,47 +252,22 @@ def fade_slide_text(
 
 
 def draw_hook(local: float, layout: Layout) -> Image.Image:
+    """Tired line over the still-chaos notification pile."""
     im = new_frame(layout)
     tall = layout.h > 1400
-    kicker_size = 22 if tall else 18
-    head_size = 84 if tall else 58
-    sub_size = 32 if tall else 26
-    block_y = layout.h * (0.42 if tall else 0.40)
+    placed, scrim = pile_and_scrim(layout)
+    for rot, px, py in placed:
+        im.alpha_composite(rot, (px, py))
+    im = Image.alpha_composite(im, scrim)
 
-    ku = smooth(local / 0.35)
-    paste_text(
-        im,
-        "AUSTIN LANDLORDS",
-        font(FONT_SEM, kicker_size),
-        (layout.w / 2, block_y - (150 if tall else 110)),
-        CYAN,
-        alpha=int(255 * ku),
-        anchor="mm",
-    )
-    # accent rule under the kicker
-    if ku > 0:
-        rule_w = int(120 * ku)
-        d = ImageDraw.Draw(im)
-        y = block_y - (118 if tall else 84)
-        d.line([(layout.w / 2 - rule_w / 2, y), (layout.w / 2 + rule_w / 2, y)], fill=rgba(INDIGO, int(220 * ku)), width=4)
-
+    head_size = 84 if tall else 56
+    block_y = layout.h * (0.46 if tall else 0.48)
     lines = ["Tired of", "self-managing", "maintenance?"]
     fills = [WHITE, WHITE, CYAN]
-    gap = head_size + (10 if tall else 6)
+    gap = head_size + (8 if tall else 4)
     top = block_y - gap
     for i, (line, col) in enumerate(zip(lines, fills)):
-        fade_slide_text(im, line, font(FONT_BOLD, head_size), (layout.w / 2, top + i * gap), col, local, 0.15 + i * 0.16)
-
-    fade_slide_text(
-        im,
-        "Every leak, lock, and dead AC lands on you.",
-        font(FONT_REG, sub_size),
-        (layout.w / 2, top + 3 * gap + (24 if tall else 16)),
-        MUTED,
-        local,
-        0.85,
-        rise=16,
-    )
+        fade_slide_text(im, line, font(FONT_BOLD, head_size), (layout.w / 2, top + i * gap), col, local, 0.04 + i * 0.12)
     return im
 
 
@@ -320,13 +298,13 @@ def draw_barrage(local: float, layout: Layout) -> Image.Image:
     else:
         paste_text(im, "9:14  ·  Saturday", font(FONT_BOLD, 42), (layout.w / 2, 128), WHITE, anchor="mm")
 
-    starts = [0.35, 1.15, 1.95, 2.75, 3.55]
+    starts = [0.06, 0.46, 0.86, 1.26, 1.66]
     shake = 0.0
-    if local > 5.0:
-        shake = math.sin(local * 22) * min(6, (local - 5.0) * 4)
+    if local > 2.15:
+        shake = math.sin(local * 28) * min(7, (local - 2.15) * 10)
 
     for i, start in enumerate(starts):
-        u = ease_out_back((local - start) / 0.42)
+        u = ease_out_back((local - start) / 0.32)
         if u <= 0:
             continue
         # Later cards push the stack; each card's rest y is first_y + i * stride
@@ -352,12 +330,12 @@ def draw_barrage(local: float, layout: Layout) -> Image.Image:
     if cap_y < layout.h - (220 if tall else 80):
         fade_slide_text(
             im,
-            "Five tickets. One Saturday night.",
+            "Five tickets. One night.",
             font(FONT_SEM, 34 if tall else 28),
             (layout.w / 2, cap_y),
             WHITE,
             local,
-            4.3,
+            1.85,
             rise=12,
         )
     return im
@@ -478,7 +456,7 @@ def draw_delegate(local: float, layout: Layout) -> Image.Image:
             "Your handyman",
             "Routes the ticket to your vendor.",
             (52, 211, 153),
-            0.45,
+            0.12,
             y1,
         ),
         (
@@ -486,7 +464,7 @@ def draw_delegate(local: float, layout: Layout) -> Image.Image:
             "Or a new vendor",
             "Finds shops. Contacts them after you approve.",
             CYAN,
-            1.15,
+            0.48,
             y2,
         ),
     ]
@@ -513,7 +491,7 @@ def draw_delegate(local: float, layout: Layout) -> Image.Image:
         (layout.w / 2, (y2 + ch + 70) if tall else (y2 + ch + 48)),
         MUTED,
         local,
-        2.0,
+        1.05,
         rise=10,
     )
     return im
@@ -524,44 +502,40 @@ def draw_cta(local: float, layout: Layout) -> Image.Image:
     tall = layout.h > 1400
     cy = layout.h * (0.42 if tall else 0.40)
 
-    fade_slide_text(im, "TOBIN", font(FONT_BOLD, 28 if tall else 22), (layout.w / 2, cy - (210 if tall else 150)), CYAN, local, 0.05, rise=10)
+    fade_slide_text(im, "TOBIN", font(FONT_BOLD, 28 if tall else 22), (layout.w / 2, cy - (150 if tall else 110)), CYAN, local, 0.0, rise=8)
 
-    lines = [("2-week free", WHITE), ("Austin pilot", CYAN)]
-    size = 84 if tall else 64
-    for i, (line, col) in enumerate(lines):
-        fade_slide_text(im, line, font(FONT_BOLD, size), (layout.w / 2, cy - 20 + i * (size + 8)), col, local, 0.15 + i * 0.12)
-
-    # pill
-    u = ease_out((local - 0.7) / 0.45)
-    if u > 0:
-        label = "One landlord  ·  up to 5 properties"
-        fnt = font(FONT_SEM, 26 if tall else 22)
-        tw, th = text_size(label, fnt)
-        pw, ph = tw + 56, th + 36
-        pill = rounded_card(pw, ph, ph // 2, rgba(INDIGO, int(230 * u)), rgba(CYAN, int(180 * u)), 2)
-        paste_text(pill, label, fnt, (pw / 2, ph / 2 - 1), WHITE, alpha=int(255 * u), anchor="mm")
-        paste_center(im, pill, layout.w / 2, cy + (size + 90 if tall else size + 70) + (1 - u) * 16, alpha=255)
-
+    size = 72 if tall else 52
+    fade_slide_text(im, "2-week free pilot", font(FONT_BOLD, size), (layout.w / 2, cy), WHITE, local, 0.05, rise=16)
+    fade_slide_text(
+        im,
+        "Then $99/mo",
+        font(FONT_BOLD, 48 if tall else 36),
+        (layout.w / 2, cy + (size * 0.85)),
+        CYAN,
+        local,
+        0.12,
+        rise=12,
+    )
     fade_slide_text(
         im,
         "Your vendors. Your veto.",
         font(FONT_REG, 30 if tall else 24),
-        (layout.w / 2, cy + (size + 180 if tall else size + 140)),
+        (layout.w / 2, cy + (size * 0.85) + (78 if tall else 58)),
         MUTED,
         local,
-        1.05,
+        0.22,
         rise=10,
     )
     return im
 
 
-# Scene spans (seconds). Neighbors overlap by 0.4s for a crossfade.
+# ~12s. Neighbors overlap ~0.3s for a crossfade.
+# 0–3 spam, 3–6 tired, 6–10 delegate, 10–12 CTA.
 SCENES = [
-    (0.0, 3.8, draw_hook),
-    (3.4, 12.2, draw_barrage),
-    (11.8, 15.8, draw_overwhelm),
-    (15.4, 21.2, draw_delegate),
-    (20.8, DURATION, draw_cta),
+    (0.0, 3.25, draw_barrage),
+    (2.95, 6.25, draw_hook),
+    (5.95, 10.25, draw_delegate),
+    (9.95, DURATION, draw_cta),
 ]
 
 
@@ -634,7 +608,7 @@ def encode(layout: Layout, dest: Path) -> None:
 
 def write_stills(directory: Path, layout: Layout) -> None:
     directory.mkdir(parents=True, exist_ok=True)
-    times = [1.6, 5.2, 8.4, 11.0, 14.0, 18.4, 23.2]
+    times = [1.4, 2.7, 4.6, 8.2, 11.2]
     for t in times:
         frame = compose(t, layout).convert("RGB")
         path = directory / f"{layout.name}-{t:.1f}.png"
