@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Render TobinAI pretotype Meta video, manager concept E v2c.
+"""Render TobinAI pretotype Meta video, manager concept E v2d.
 
-Same ~12s beats and TobinAI lines as v2b. CTA only: "Sign up for a free trial".
+Same ~12s beats, TobinAI lines, and free-trial CTA as v2c.
+Tagline under the CTA: "Property management. Zero stress."
 No price and no city name.
 
-  vertical 1080x1920 → manager-concept-e-v2c-1080x1920.mp4
-  square   1080x1080 → manager-concept-e-v2c-1080.mp4
+  vertical 1080x1920 → manager-concept-e-v2d-1080x1920.mp4
+  square   1080x1080 → manager-concept-e-v2d-1080.mp4
 
 Usage:
   python3 docs/pretotype-ads/render_manager_concept_e.py
@@ -55,8 +56,8 @@ class Layout:
     outfile: str
 
 
-VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2c-1080x1920.mp4")
-SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2c-1080.mp4")
+VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2d-1080x1920.mp4")
+SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2d-1080.mp4")
 
 _FONTS: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 _BG: dict[str, Image.Image] = {}
@@ -533,7 +534,7 @@ def draw_cta(local: float, layout: Layout) -> Image.Image:
     )
     fade_slide_text(
         im,
-        "Your vendors. Your veto.",
+        "Property management. Zero stress.",
         font(FONT_REG, 30 if tall else 24),
         (layout.w / 2, cy + size),
         MUTED,

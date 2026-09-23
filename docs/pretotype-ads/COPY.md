@@ -1,8 +1,8 @@
 # Pretotype ads
 
-## Manager concept E — v2c (current)
+## Manager concept E — v2d (current)
 
-Silent, captions burned in. About 12 seconds. Same beats and TobinAI lines as v2b. No city name and no price. The close is an interest test: sign up for a free trial.
+Silent, captions burned in. About 12 seconds. Same beats, TobinAI lines, and free-trial close as v2c. No city name and no price. Tagline under the CTA: "Property management. Zero stress."
 
 Beat sheet:
 
@@ -11,8 +11,8 @@ Beat sheet:
 - 6–10s: "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models", then routes to your handyman or a new vendor after you approve
 - 10–12s: Sign up for a free trial
 
-- `manager-concept-e-v2c-1080x1920.mp4` — 9:16 (Stories / Reels)
-- `manager-concept-e-v2c-1080.mp4` — 1:1
+- `manager-concept-e-v2d-1080x1920.mp4` — 9:16 (Stories / Reels)
+- `manager-concept-e-v2d-1080.mp4` — 1:1
 
 **Primary text:**
 Tired of self-managing maintenance? TobinAI helps you manage your maintenance coordination autonomously, powered by cutting-edge AI models. It routes the ticket to your handyman, or finds a vendor and contacts them after you approve.
@@ -21,7 +21,14 @@ Tired of self-managing maintenance? TobinAI helps you manage your maintenance co
 Sign up for a free trial
 
 **Description:**
-Your vendors. Your veto.
+Property management. Zero stress.
+
+## v2c (superseded)
+
+Same 12s structure. Tagline under the CTA was "Your vendors. Your veto."
+
+- `manager-concept-e-v2c-1080x1920.mp4`
+- `manager-concept-e-v2c-1080.mp4`
 
 ## v2b (superseded)
 
