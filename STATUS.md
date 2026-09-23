@@ -28,6 +28,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-21 | Cursor cloud | Week Rock notify honesty: graph `notifications[]`, honest `ai_reasoning`, webhook JSON, form warning on failed SMS/email, `/health` env-presence flags. PR https://github.com/jxx016/TobinAI/pull/5 → `feat/vendor-research`. pytest 26/26 (mocked; no real SMS). Live Render SMS retest still John’s. |
 | 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
 | 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
@@ -40,11 +41,12 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 1. **Redeploy Netlify** with `_redirects` (JOH-5 live) — sell form still 404
 2. **Send `docs/pilot-offer.md`** — first landlord ask (2 weeks free → $99/mo)
 3. **Confirm JOH-6** applied in Supabase (`sent_at` DROP DEFAULT)
-4. **Supervised live ticket** — DB vendor only, John watching Twilio (sample vendor "City Plumbing Co" was used by JOH-7 smoke)
+4. **Supervised live ticket** — real tenant phone; confirm JSON `notifications` + actual SMS (HTTP 200 is not delivery). DB vendor only; John watching Twilio
 5. **Places-path proof** — only after sample/preferred vendors would *not* match (or temporarily deactivate them); do not approve-outreach without John + `APPROVE_SECRET`
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-21 Cursor cloud (Week Rock): **UI success ≠ delivery is fixed in API + form.** Failures record `{channel,to,ok:false,error}` and `❌` reasoning; success still claims sent. Twilio/AgentMail now lazy-init so missing Render env is a notify error, not a boot crash. John: verify Render env (`TWILIO_*`, `AGENTMAIL_*`, `LANDLORD_EMAIL`), hit `/health` after 30–60s cold start, submit with a **real** tenant phone, check `notifications` + actual SMS. Approve-gate / AUTO_OUTREACH unchanged.
 - 2026-09-12 Cursor cloud (JOH-7): **No-Go for sell demo** until Netlify SPA routes are live. **Conditional Go for API-only supervised pilot** (Render + DB vendors). Smoke POST `TM-20260912-0006` succeeded; check-status found it (`status=pending`). Reasoning claimed tenant+vendor SMS; phones were `+15555550100` (tenant) and schema sample `+15552345678` (City Plumbing Co) — Twilio almost certainly rejected both. Places / landlord-approve email **not** exercised because Gemini matched a DB vendor. Approve webhook without key → 401 (did not call with secret). Repo landing app source is now only `_redirects` files after PR #1 (submodule removed) — rebuild from this tree will not recreate the live SPA. Full write-up in Linear JOH-7.
 - 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).

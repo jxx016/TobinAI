@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MaintenanceRequest(BaseModel):
@@ -10,6 +10,14 @@ class MaintenanceRequest(BaseModel):
     issue_description: str
 
 
+class NotificationResult(BaseModel):
+    """One SMS/email attempt. `ok` is delivery-attempt success, not ticket-save success."""
+    channel: str
+    to: Optional[str] = None
+    ok: bool
+    error: Optional[str] = None
+
+
 class MaintenanceResponse(BaseModel):
     success: bool
     reference_number: str
@@ -18,6 +26,7 @@ class MaintenanceResponse(BaseModel):
     summary: str
     estimated_time: str
     ai_reasoning: list[str]
+    notifications: list[NotificationResult] = Field(default_factory=list)
 
 
 class StatusResponse(BaseModel):

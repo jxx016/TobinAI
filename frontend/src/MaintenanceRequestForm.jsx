@@ -14,6 +14,7 @@ export default function MaintenanceRequestForm() {
   });
   const [status, setStatus] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [notifications, setNotifications] = useState([]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,13 +24,23 @@ export default function MaintenanceRequestForm() {
     e.preventDefault();
     setStatus("Sending...");
     setReferenceNumber("");
+    setNotifications([]);
     try {
       const response = await axios.post(N8N_WEBHOOK_URL, form);
       
-      // Generate a temporary reference number (will be replaced by actual from n8n response)
       const tempRef = `TM-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-PENDING`;
       setReferenceNumber(response.data?.reference_number || tempRef);
-      setStatus("✅ Request submitted successfully!");
+      const notes = Array.isArray(response.data?.notifications) ? response.data.notifications : [];
+      setNotifications(notes);
+      const failed = notes.filter((n) => n && n.ok === false);
+      if (failed.length) {
+        const detail = failed
+          .map((n) => `${n.channel || "notify"}${n.to ? ` to ${n.to}` : ""}: ${n.error || "failed"}`)
+          .join(" | ");
+        setStatus(`⚠️ Request saved, but notification failed — ${detail}`);
+      } else {
+        setStatus("✅ Request submitted successfully!");
+      }
       
       setForm({
         tenant_name: "",
@@ -41,6 +52,7 @@ export default function MaintenanceRequestForm() {
     } catch (err) {
       setStatus("❌ Error sending request: " + err.message);
       setReferenceNumber("");
+      setNotifications([]);
     }
   };
 
@@ -361,12 +373,12 @@ export default function MaintenanceRequestForm() {
           {status && (
             <div style={{ 
               textAlign: "center", 
-              color: status.includes("Error") || status.includes("❌") ? "#ff6b6b" : "#00d4ff", 
+              color: status.includes("Error") || status.includes("❌") || status.includes("⚠️") ? "#ff6b6b" : "#00d4ff", 
               marginTop: "1rem",
               padding: "0.75rem",
               borderRadius: "8px",
-              background: status.includes("Error") || status.includes("❌") ? "rgba(255, 107, 107, 0.1)" : "rgba(0, 212, 255, 0.1)",
-              border: status.includes("Error") || status.includes("❌") ? "1px solid rgba(255, 107, 107, 0.3)" : "1px solid rgba(0, 212, 255, 0.3)",
+              background: status.includes("Error") || status.includes("❌") || status.includes("⚠️") ? "rgba(255, 107, 107, 0.1)" : "rgba(0, 212, 255, 0.1)",
+              border: status.includes("Error") || status.includes("❌") || status.includes("⚠️") ? "1px solid rgba(255, 107, 107, 0.3)" : "1px solid rgba(0, 212, 255, 0.3)",
               fontSize: "0.875rem",
               fontWeight: "500",
               backdropFilter: "blur(10px)"
@@ -386,6 +398,22 @@ export default function MaintenanceRequestForm() {
                   <div style={{ marginTop: "0.5rem", fontSize: "0.8rem", color: "#94a3b8" }}>
                     Save this number to check your request status
                   </div>
+                  {notifications.length > 0 && (
+                    <ul style={{
+                      marginTop: "0.75rem",
+                      paddingLeft: "1.1rem",
+                      textAlign: "left",
+                      fontSize: "0.8rem",
+                      color: "rgba(255, 255, 255, 0.85)",
+                      lineHeight: "1.5"
+                    }}>
+                      {notifications.map((n, i) => (
+                        <li key={`${n.channel}-${n.to || "none"}-${i}`}>
+                          {n.ok ? "✅" : "❌"} {n.channel}{n.to ? ` → ${n.to}` : ""}{n.ok ? "" : `: ${n.error || "failed"}`}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
