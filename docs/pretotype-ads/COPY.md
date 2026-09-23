@@ -1,27 +1,34 @@
 # Pretotype ads
 
-## Manager concept E — v2b (current)
+## Manager concept E — v2c (current)
 
-Silent, captions burned in. About 12 seconds. Same beats as v2. No city name. The market is the US and Malaysia, so the CTA stays geo-agnostic.
+Silent, captions burned in. About 12 seconds. Same beats and TobinAI lines as v2b. No city name and no price. The close is an interest test: sign up for a free trial.
 
 Beat sheet:
 
 - 0–3s: notification spam (leak, AC, lock, toilet, disposal)
 - 3–6s: "Tired of self-managing maintenance?"
 - 6–10s: "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models", then routes to your handyman or a new vendor after you approve
-- 10–12s: 2-week free pilot, then $99/mo
+- 10–12s: Sign up for a free trial
 
-- `manager-concept-e-v2b-1080x1920.mp4` — 9:16 (Stories / Reels)
-- `manager-concept-e-v2b-1080.mp4` — 1:1
+- `manager-concept-e-v2c-1080x1920.mp4` — 9:16 (Stories / Reels)
+- `manager-concept-e-v2c-1080.mp4` — 1:1
 
 **Primary text:**
 Tired of self-managing maintenance? TobinAI helps you manage your maintenance coordination autonomously, powered by cutting-edge AI models. It routes the ticket to your handyman, or finds a vendor and contacts them after you approve.
 
 **Headline:**
-2-week free pilot
+Sign up for a free trial
 
 **Description:**
-Then $99/mo. Your vendors. Your veto.
+Your vendors. Your veto.
+
+## v2b (superseded)
+
+Same 12s structure. Close was "2-week free pilot" and "Then $99/mo".
+
+- `manager-concept-e-v2b-1080x1920.mp4`
+- `manager-concept-e-v2b-1080.mp4`
 
 ## v2 (superseded)
 

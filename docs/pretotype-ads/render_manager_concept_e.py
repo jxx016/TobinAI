@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Render TobinAI pretotype Meta video, manager concept E v2b.
+"""Render TobinAI pretotype Meta video, manager concept E v2c.
 
-Same ~12s beats as v2. Caption tweak only: the delegate value line is
-"TobinAI helps you manage your maintenance coordination autonomously"
-plus "Powered by cutting-edge AI models". No city name.
+Same ~12s beats and TobinAI lines as v2b. CTA only: "Sign up for a free trial".
+No price and no city name.
 
-  vertical 1080x1920 → manager-concept-e-v2b-1080x1920.mp4
-  square   1080x1080 → manager-concept-e-v2b-1080.mp4
+  vertical 1080x1920 → manager-concept-e-v2c-1080x1920.mp4
+  square   1080x1080 → manager-concept-e-v2c-1080.mp4
 
 Usage:
   python3 docs/pretotype-ads/render_manager_concept_e.py
@@ -56,8 +55,8 @@ class Layout:
     outfile: str
 
 
-VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2b-1080x1920.mp4")
-SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2b-1080.mp4")
+VERTICAL = Layout("vertical", 1080, 1920, "manager-concept-e-v2c-1080x1920.mp4")
+SQUARE = Layout("square", 1080, 1080, "manager-concept-e-v2c-1080.mp4")
 
 _FONTS: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
 _BG: dict[str, Image.Image] = {}
@@ -519,28 +518,27 @@ def draw_cta(local: float, layout: Layout) -> Image.Image:
     tall = layout.h > 1400
     cy = layout.h * (0.42 if tall else 0.40)
 
-    fade_slide_text(im, "TOBIN", font(FONT_BOLD, 28 if tall else 22), (layout.w / 2, cy - (150 if tall else 110)), CYAN, local, 0.0, rise=8)
+    fade_slide_text(im, "TOBIN", font(FONT_BOLD, 28 if tall else 22), (layout.w / 2, cy - (120 if tall else 90)), CYAN, local, 0.0, rise=8)
 
-    size = 72 if tall else 52
-    fade_slide_text(im, "2-week free pilot", font(FONT_BOLD, size), (layout.w / 2, cy), WHITE, local, 0.05, rise=16)
+    size = 68 if tall else 48
     fade_slide_text(
         im,
-        "Then $99/mo",
-        font(FONT_BOLD, 48 if tall else 36),
-        (layout.w / 2, cy + (size * 0.85)),
-        CYAN,
+        "Sign up for a free trial",
+        font(FONT_BOLD, size),
+        (layout.w / 2, cy),
+        WHITE,
         local,
-        0.12,
-        rise=12,
+        0.05,
+        rise=16,
     )
     fade_slide_text(
         im,
         "Your vendors. Your veto.",
         font(FONT_REG, 30 if tall else 24),
-        (layout.w / 2, cy + (size * 0.85) + (78 if tall else 58)),
+        (layout.w / 2, cy + size),
         MUTED,
         local,
-        0.22,
+        0.18,
         rise=10,
     )
     return im

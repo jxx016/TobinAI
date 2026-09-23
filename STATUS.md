@@ -28,7 +28,8 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
-| 2026-09-23 | Cursor cloud | Concept E v2b: same ~12s beats as v2, caption tweak — "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models". Files `manager-concept-e-v2b-*.mp4`. No city name. |
+| 2026-09-23 | Cursor cloud | Concept E v2c: same ~12s beats and TobinAI lines as v2b. CTA is "Sign up for a free trial" only — no $99. Files `manager-concept-e-v2c-*.mp4`. |
+| 2026-09-23 | Cursor cloud | Concept E v2b: same ~12s beats as v2, caption tweak — "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models". Superseded by v2c (v2b still shows $99). |
 | 2026-09-23 | Cursor cloud | Concept E v2: ~12s silent 9:16 + 1:1. Opens on ticket spam, then "tired of self-managing", geo-agnostic CTA (no Austin). Superseded by v2b for the value line. |
 | 2026-09-23 | Cursor cloud | Pretotype Meta video (manager concept E v1): silent 24.5s 9:16 + 1:1. Superseded by v2 for US + Malaysia (v1 names Austin). |
 | 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
@@ -48,6 +49,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-23 Cursor cloud: Concept E **v2c** is the cut to review. Same 12s beats and TobinAI lines as v2b. Close is "Sign up for a free trial" only. No $99 and no city. Files `manager-concept-e-v2c-1080x1920.mp4` and `manager-concept-e-v2c-1080.mp4`.
 - 2026-09-23 Cursor cloud: Concept E **v2b** is the cut to review. Same 12s beats as v2. New captions: "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models". Files `manager-concept-e-v2b-1080x1920.mp4` and `manager-concept-e-v2b-1080.mp4`. No city name.
 - 2026-09-23 Cursor cloud: Concept E **v2** is the cut to review. ~12s, spam first, then tired-of-self-managing, delegate, 2-week free pilot / $99/mo. No city name. `manager-concept-e-v2-1080x1920.mp4` and `manager-concept-e-v2-1080.mp4`. v1 Austin files stay in the folder but are superseded.
 - 2026-09-23 Cursor cloud: Manager concept E video ad only. Files: `docs/pretotype-ads/manager-concept-e-video-1080x1920.mp4`, `manager-concept-e-video-1080.mp4`, `COPY.md`. Silent, captions burned in. Primary text + headline are in `COPY.md`. Did not touch notify/product code.
