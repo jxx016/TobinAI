@@ -28,6 +28,11 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-23 | Cursor cloud | Concept E v2d: same ~12s as v2c. Tagline under the free-trial CTA is "Property management. Zero stress." Files `manager-concept-e-v2d-*.mp4`. No $99, no city. |
+| 2026-09-23 | Cursor cloud | Concept E v2c: same ~12s beats and TobinAI lines as v2b. CTA is "Sign up for a free trial" only — no $99. Superseded by v2d (v2c still says "Your vendors. Your veto."). |
+| 2026-09-23 | Cursor cloud | Concept E v2b: same ~12s beats as v2, caption tweak — "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models". Superseded by v2c (v2b still shows $99). |
+| 2026-09-23 | Cursor cloud | Concept E v2: ~12s silent 9:16 + 1:1. Opens on ticket spam, then "tired of self-managing", geo-agnostic CTA (no Austin). Superseded by v2b for the value line. |
+| 2026-09-23 | Cursor cloud | Pretotype Meta video (manager concept E v1): silent 24.5s 9:16 + 1:1. Superseded by v2 for US + Malaysia (v1 names Austin). |
 | 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
 | 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
@@ -45,6 +50,11 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-23 Cursor cloud: Concept E **v2d** is the cut to review. Same 12s as v2c. Close is "Sign up for a free trial" and "Property management. Zero stress." No vendors/veto line, no $99, no city. Files `manager-concept-e-v2d-1080x1920.mp4` and `manager-concept-e-v2d-1080.mp4`.
+- 2026-09-23 Cursor cloud: Concept E **v2c** is the cut to review. Same 12s beats and TobinAI lines as v2b. Close is "Sign up for a free trial" only. No $99 and no city. Files `manager-concept-e-v2c-1080x1920.mp4` and `manager-concept-e-v2c-1080.mp4`.
+- 2026-09-23 Cursor cloud: Concept E **v2b** is the cut to review. Same 12s beats as v2. New captions: "TobinAI helps you manage your maintenance coordination autonomously" and "Powered by cutting-edge AI models". Files `manager-concept-e-v2b-1080x1920.mp4` and `manager-concept-e-v2b-1080.mp4`. No city name.
+- 2026-09-23 Cursor cloud: Concept E **v2** is the cut to review. ~12s, spam first, then tired-of-self-managing, delegate, 2-week free pilot / $99/mo. No city name. `manager-concept-e-v2-1080x1920.mp4` and `manager-concept-e-v2-1080.mp4`. v1 Austin files stay in the folder but are superseded.
+- 2026-09-23 Cursor cloud: Manager concept E video ad only. Files: `docs/pretotype-ads/manager-concept-e-video-1080x1920.mp4`, `manager-concept-e-video-1080.mp4`, `COPY.md`. Silent, captions burned in. Primary text + headline are in `COPY.md`. Did not touch notify/product code.
 - 2026-09-12 Cursor cloud (JOH-7): **No-Go for sell demo** until Netlify SPA routes are live. **Conditional Go for API-only supervised pilot** (Render + DB vendors). Smoke POST `TM-20260912-0006` succeeded; check-status found it (`status=pending`). Reasoning claimed tenant+vendor SMS; phones were `+15555550100` (tenant) and schema sample `+15552345678` (City Plumbing Co) — Twilio almost certainly rejected both. Places / landlord-approve email **not** exercised because Gemini matched a DB vendor. Approve webhook without key → 401 (did not call with secret). Repo landing app source is now only `_redirects` files after PR #1 (submodule removed) — rebuild from this tree will not recreate the live SPA. Full write-up in Linear JOH-7.
 - 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).
