@@ -28,6 +28,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Done (newest first)
 | When | Agent | What |
 |------|-------|------|
+| 2026-09-23 | Cursor cloud | Pretotype Meta video (manager concept E): silent 24.5s 9:16 + 1:1 in `docs/pretotype-ads/`. Hook, stacking tickets, delegate to handyman or approved vendor, 2-week free Austin pilot. No product code. |
 | 2026-09-12 | Cursor cloud | JOH-7 readiness: pytest 15/15; live smoke `TM-20260912-0006` (DB vendor "City Plumbing Co"); Netlify deep links still 404; no PR for product code — findings in Linear JOH-7 |
 | 2026-09-12 | Cursor cloud | JOH-8: `docs/pilot-offer.md` — 2-week free then $99/mo supervised 1-landlord offer |
 | 2026-09-12 | Cursor cloud | JOH-5: Netlify SPA `_redirects` source checked in; PR https://github.com/jxx016/TobinAI/pull/1 → `feat/vendor-research` (redeploy still needed for live) |
@@ -45,6 +46,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 6. Later: archive Express/`n8n` leftovers; refresh README
 
 ## Handoff notes (freeform, newest at top)
+- 2026-09-23 Cursor cloud: Manager concept E video ad only. Files: `docs/pretotype-ads/manager-concept-e-video-1080x1920.mp4`, `manager-concept-e-video-1080.mp4`, `COPY.md`. Silent, captions burned in. Primary text + headline are in `COPY.md`. Did not touch notify/product code.
 - 2026-09-12 Cursor cloud (JOH-7): **No-Go for sell demo** until Netlify SPA routes are live. **Conditional Go for API-only supervised pilot** (Render + DB vendors). Smoke POST `TM-20260912-0006` succeeded; check-status found it (`status=pending`). Reasoning claimed tenant+vendor SMS; phones were `+15555550100` (tenant) and schema sample `+15552345678` (City Plumbing Co) — Twilio almost certainly rejected both. Places / landlord-approve email **not** exercised because Gemini matched a DB vendor. Approve webhook without key → 401 (did not call with secret). Repo landing app source is now only `_redirects` files after PR #1 (submodule removed) — rebuild from this tree will not recreate the live SPA. Full write-up in Linear JOH-7.
 - 2026-09-12 Cursor cloud: JOH-8 offer one-pager in `docs/pilot-offer.md`. Default: free 2 weeks then $99/mo, one landlord / 5 properties. Places still gated. John can send the last section (“How to say it”) as-is.
 - 2026-09-12 Cursor cloud: JOH-5 PR #1 open. Landing was a broken gitlink; now tracked `_redirects` under `landing_page/TobinPropertyAssistant/{public,client/public}/`. Live still 404 until John redeploys Netlify. Do not start JOH-6 until this PR is open (it is).
