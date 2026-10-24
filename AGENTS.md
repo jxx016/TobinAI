@@ -8,7 +8,7 @@
 Autonomous property repair coordinator: tenant maintenance request → AI triage → vendor match or Places research → SMS/email outreach → vendor YES/NO → landlord notify.
 
 ## Current state (2026-09-08)
-- Path: `~/Personal_projet/TobinAI` (folder spelling `Personal_projet`)
+- Path: `/path/to/TobinAI`
 - Branch: `feat/vendor-research` (ahead of `main`; n8n → FastAPI + LangGraph already done)
 - **No git remote** — local-only until John pushes to GitHub
 - Stack that matters: `ai-agent/` (FastAPI + LangGraph + Gemini), `frontend/` (Vite form + status), `landing_page/TobinPropertyAssistant/` (Netlify), Supabase Postgres, Twilio, AgentMail, Google Places

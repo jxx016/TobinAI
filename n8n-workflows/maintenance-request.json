@@ -91,7 +91,7 @@
     },
     {
       "parameters": {
-        "from": "+1 206 489 3667",
+        "from": "+1 555 555 0100",
         "to": "={{ $('Code').item.json.tenant_phone }}!",
         "message": "=To: {{ $('Code').item.json.tenant_phone }}\n\nMessage: \nHi {{ $('Code').item.json.tenant_name }}! We received your maintenance request:\n\nIssue: {{ $('Code').item.json.issue_description }}\nProperty: {{ $('Code').item.json.address }}\n\nWe're contacting your vendor now. You'll get an update soon! - Tobin AI",
         "options": {
@@ -130,7 +130,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
+        "fromEmail": "owner@example.com",
         "toEmail": "={{ $('Code').item.json.vendor_email }}",
         "html": "={{ $('Code').item.json.summary }}\n```\n\n---\n\n\n### **Subject:**\n```\n{{ $('Code').item.json.urgency }} Maintenance - Unit {{ $('Code').item.json.unit }}\n\n{{ $('Code').item.json.handyman_notes }}",
         "options": {}
@@ -198,7 +198,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
+        "fromEmail": "owner@example.com",
         "toEmail": "{{ $('Code').item.json.vendor_email }}",
         "html": "={{ $('Code').item.json.handyman_notes }}",
         "options": {}
@@ -221,7 +221,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
+        "fromEmail": "owner@example.com",
         "toEmail": "{{ $('Code').item.json.vendor_email }}",
         "html": "={{ $json.summary }}",
         "options": {}
@@ -244,7 +244,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
+        "fromEmail": "owner@example.com",
         "toEmail": "{{ $('Code').item.json.vendor_email }}",
         "html": "={{ $json.summary }}",
         "options": {}
@@ -267,7 +267,7 @@
     },
     {
       "parameters": {
-        "from": "+1 206 489 3667",
+        "from": "+1 555 555 0100",
         "to": "={{ $('Code').item.json.primary_vendor_phone }}",
         "message": "=🚨 EMERGENCY MAINTENANCE 🚨  \nProperty: {{ $('Code').item.json.address }} \nUnit: {{ $('Code').item.json.unit }} \nType: {{ $('Code').item.json.category }}  \n\nISSUE: {{ $('Code').item.json.summary }}  \nTENANT NOTES: {{ $('Code').item.json.issue_description }}  \nTECHNICIAN INSTRUCTIONS: {{ $('Code').item.json.handyman_notes }}  \n\nEstimated time: {{ $('Code').item.json.estimated_time }} \nPhotos needed: {{ $('Code').item.json.requires_photos }}  \n\n👤 TENANT CONTACT: {{ $('Code').item.json.tenant_name }} 📞 {{ $('Code').item.json.tenant_phone }}  \n\n⚡ URGENT - Reply YES to accept or call tenant NOW",
         "options": {}
@@ -304,7 +304,7 @@
     },
     {
       "parameters": {
-        "from": "+1 206 489 3667",
+        "from": "+1 555 555 0100",
         "to": "{{ $('Code').item.json.tenant_phone }}!",
         "message": "=To: {{ $('Code').item.json.tenant_phone }}  \n\nMessage:  Hi {{ $('Code').item.json.tenant_name }}! We received your maintenance request:  \nIssue: {{ $('Code').item.json.issue_description }} \nProperty: {{ $('Code').item.json.address }}  We're contacting your vendor now. You'll get an update soon! - Tobin AI",
         "options": {}
@@ -326,7 +326,7 @@
     },
     {
       "parameters": {
-        "from": "+1 2064893667",
+        "from": "+15555550100",
         "to": "{{ $('Code').item.json.primary_vendor_phone }}",
         "message": "message to vendor",
         "options": {
@@ -350,7 +350,7 @@
     },
     {
       "parameters": {
-        "from": "+1 206 489 3667",
+        "from": "+1 555 555 0100",
         "to": "{{ $('Code').item.json.tenant_phone }}!",
         "message": "message to tenant",
         "options": {}
@@ -372,7 +372,7 @@
     },
     {
       "parameters": {
-        "from": "+1 206 489 3667",
+        "from": "+1 555 555 0100",
         "to": "{{ $('Code').item.json.tenant_phone }}!",
         "message": "message to tenant",
         "options": {}
@@ -439,8 +439,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
-        "toEmail": "jsxr1995@gmail.com",
+        "fromEmail": "owner@example.com",
+        "toEmail": "landlord@example.com",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -461,8 +461,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
-        "toEmail": "jsxr1995@gmail.com",
+        "fromEmail": "owner@example.com",
+        "toEmail": "landlord@example.com",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
@@ -483,8 +483,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "jsoh0118@gmail.com",
-        "toEmail": "jsxr1995@gmail.com",
+        "fromEmail": "owner@example.com",
+        "toEmail": "landlord@example.com",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",

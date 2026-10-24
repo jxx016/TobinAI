@@ -108,10 +108,10 @@ curl http://localhost:5555/api/maintenance-requests/status/TM-20231124-0001
   "status": "pending",
   "urgency": "High",
   "category": "hvac",
-  "summary": "Tenant reports HVAC cooling issue in unit #2402D",
+  "summary": "Tenant reports HVAC cooling issue in unit 4B",
   "tenant_name": "John Doe",
-  "property_address": "980 Jefferson Commons Circle",
-  "apartment_unit": "#2402D",
+  "property_address": "123 Main Street",
+  "apartment_unit": "4B",
   "created_at": "2023-11-24T15:30:00.000Z",
   "assigned_vendor_id": 3
 }
@@ -148,7 +148,7 @@ interface IStorage {
 ### 1. Start the Landing Page Server
 
 ```bash
-cd /Users/johnsoh/Personal_projet/TobinAI/landing_page/TobinPropertyAssistant
+cd /path/to/TobinAI/landing_page/TobinPropertyAssistant
 npm run dev
 ```
 

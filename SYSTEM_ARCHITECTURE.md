@@ -199,7 +199,7 @@ request_id = "TM-20231124-0042";
 ### AI Agent Processing
 
 ```
-Input: "It's too hot in unit #2402D, please help"
+Input: "It's too hot in unit 4B, please help"
 
 AI Agent:
 1. Analyzes urgency → "High"
@@ -215,7 +215,7 @@ Output JSON:
   "summary": "Tenant reports HVAC cooling issue...",
   "vendor_id": 3,
   "vendor_name": "Joe's HVAC",
-  "vendor_phone": "+12064893667"
+  "vendor_phone": "+15555550100"
 }
 ```
 

@@ -99,12 +99,12 @@ View Request Details
 brew services start postgresql@15
 
 # Terminal 2 - Frontend (maintenance form)
-cd /Users/johnsoh/Personal_projet/TobinAI/frontend
+cd /path/to/TobinAI/frontend
 npm run dev
 # Should run on http://localhost:5173
 
 # Terminal 3 - Landing Page
-cd /Users/johnsoh/Personal_projet/TobinAI/landing_page/TobinPropertyAssistant
+cd /path/to/TobinAI/landing_page/TobinPropertyAssistant
 npm run dev
 # Should run on http://localhost:5555
 
@@ -119,9 +119,9 @@ docker start your-n8n-container-name
 2. Click "Submit Request" in navigation OR CTA button
 3. Fill out the maintenance form:
    - Tenant Name: "John Doe"
-   - Phone: "612-707-5058"
-   - Property: "980 Jefferson Commons Circle"
-   - Apartment: "#2402D"
+   - Phone: "555-0100"
+   - Property: "123 Main Street"
+   - Apartment: "4B"
    - Issue: "HVAC not working, too hot"
 4. Click Submit
 5. **Expected**: Success message with reference number (e.g., `TM-20231124-0001`)
