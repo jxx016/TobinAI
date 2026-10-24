@@ -18,6 +18,7 @@ Autonomous property repair coordinator: tenant maintenance request → AI triage
 ## Do / don’t
 - **Do** add a human approval gate before any cold vendor SMS (Places outreach)
 - **Do** keep DB-listed preferred vendors workable for known landlords
+- **Do** capture waitlist/demo leads on `POST /webhook/demo-request` (AgentMail → `LANDLORD_EMAIL`). The Netlify function only proxies to Render.
 - **Don’t** blast Google Places vendors in production without consent/approve
 - **Don’t** expand multi-tenant auth until one paid pilot works
 - **Don’t** rewrite README to n8n — that path is legacy
@@ -33,7 +34,9 @@ Autonomous property repair coordinator: tenant maintenance request → AI triage
 - `ai-agent/graph.py` — LangGraph wiring + route after analysis
 - `ai-agent/nodes.py` — save, analyze, notify, research, outreach, update
 - `ai-agent/vendor_research.py` — Places search + outreach table helpers
-- `ai-agent/main.py` — webhooks: maintenance-request, vendor-reply, health
+- `ai-agent/main.py` — webhooks: maintenance-request, vendor-reply, demo-request, health
+- `ai-agent/demo_leads.py` — waitlist/demo validation + AgentMail to `LANDLORD_EMAIL` (no n8n)
+- `landing_page/TobinPropertyAssistant/netlify/functions/demo-request.mjs` — HTTPS proxy the live SPA already calls
 - `frontend/src/MaintenanceRequestForm.jsx` — posts to `{VITE_API_URL}/webhook/maintenance-request`
 
 ## Shared coordination

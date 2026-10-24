@@ -11,8 +11,9 @@
    - `AUTO_OUTREACH=false`
    - `APPROVE_SECRET` = a long random string
 5. Create Web Service → wait for deploy
-6. Open `https://<your-service>.onrender.com/health` — expect `{"status":"ok","service":"tobin-ai"}`
-7. Tell Grok Bot the URL so we can point `VITE_API_URL` at it
+6. Open `https://<your-service>.onrender.com/health` — expect `{"status":"ok","service":"tobin-ai"}` and `"demo_request": true` after the waitlist endpoint is deployed
+7. Waitlist leads: `POST /webhook/demo-request` with JSON `{email,name,...}` emails `LANDLORD_EMAIL` via AgentMail and returns `{"success":true,"message":"..."}`. No n8n.
+8. Tell Grok Bot the URL so we can point `VITE_API_URL` at it
 
 Notes:
 - Free tier **spins down** when idle (~cold start). Fine for pilot; Twilio reply webhooks may be slow after idle.

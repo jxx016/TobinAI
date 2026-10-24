@@ -2,12 +2,14 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Form, Header
+from fastapi import Body, FastAPI, HTTPException, Form, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from models import MaintenanceRequest, MaintenanceResponse, StatusResponse, ApproveOutreachRequest
 from graph import graph
 from db import get_conn
-from tools import send_sms
+from demo_leads import DemoLeadError, deliver_demo_lead, parse_demo_lead, success_body
+from tools import send_email, send_sms
 from vendor_research import (
     mark_vendor_accepted,
     mark_vendor_declined,
@@ -43,7 +45,27 @@ def health():
         ),
         "agentmail_configured": _env_present("AGENTMAIL_API_KEY", "AGENTMAIL_INBOX_ID"),
         "landlord_email_configured": _env_present("LANDLORD_EMAIL"),
+        "demo_request": True,
     }
+
+
+@app.post("/webhook/demo-request")
+async def demo_request(payload: dict = Body(...)):
+    """Capture a waitlist/demo lead and email it to LANDLORD_EMAIL.
+
+    The cool-cannoli SPA posts here via the Netlify function. HTTP 200 is what
+    the form treats as success (thank-you state + Meta Lead). A failed email
+    must not return success.
+    """
+    try:
+        lead = parse_demo_lead(payload)
+        deliver_demo_lead(lead, send_email)
+    except DemoLeadError as exc:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"success": False, "error": exc.message},
+        )
+    return success_body()
 
 
 @app.post("/webhook/maintenance-request", response_model=MaintenanceResponse)
