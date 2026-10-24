@@ -1,0 +1,12 @@
+# Netlify config for the cool-cannoli landing app.
+# Base directory (if this repo is linked): landing_page/TobinPropertyAssistant
+#
+# publish MUST be the directory that already contains the live SPA
+# (index.html + assets/). This git tree does not contain that build.
+# A production deploy that publishes an empty dist/public replaces cool-cannoli.
+# Follow NETLIFY_DEMO_FUNCTION.md — deploy the current SPA files plus
+# netlify/functions. Do not "Clear cache and deploy" from GitHub alone.
+
+[build]
+  publish = "dist/public"
+  functions = "netlify/functions"

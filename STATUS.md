@@ -16,7 +16,7 @@ Supervised single-landlord pilot. LangGraph on `feat/vendor-research`. **API liv
 ## Active
 | Agent | Task | Started (local) | Notes |
 |-------|------|-----------------|-------|
-| — | — | — | — |
+| Cursor cloud | Waitlist demo-request: Render `POST /webhook/demo-request` + Netlify proxy (no n8n) | 2026-10-24 | Code on `cursor/demo-request-webhook-e07f`. Live function still 404 until John redeploys Netlify (see `landing_page/TobinPropertyAssistant/NETLIFY_DEMO_FUNCTION.md`). Render route goes live only after merge to `feat/vendor-research`. |
 
 ## Blocked
 | Item | Waiting on | Since |
