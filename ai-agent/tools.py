@@ -28,10 +28,89 @@ def _agentmail_client():
 
 
 def _inbox_id() -> str:
-    val = os.getenv("AGENTMAIL_INBOX_ID")
+    val = (os.getenv("AGENTMAIL_INBOX_ID") or "").strip()
     if not val:
         raise RuntimeError("AGENTMAIL_INBOX_ID not set — run setup_inbox.py first")
     return val
+
+
+# Filled after a successful send so a bad AGENTMAIL_INBOX_ID does not list inboxes every time.
+_resolved_inbox_id: str | None = None
+
+
+def _missing_inbox(exc: Exception) -> bool:
+    return getattr(exc, "status_code", None) == 404
+
+
+def _inbox_label(inbox) -> str:
+    inbox_id = str(getattr(inbox, "inbox_id", "") or "").strip()
+    email = str(getattr(inbox, "email", "") or "").strip()
+    return inbox_id or email
+
+
+def _pick_inbox(configured: str, inboxes) -> str | None:
+    """Prefer an inbox that matches AGENTMAIL_INBOX_ID, else the only visible one."""
+    want = configured.strip().lower()
+    exact = []
+    partial = []
+    labels = []
+    for inbox in inboxes:
+        label = _inbox_label(inbox)
+        if not label:
+            continue
+        labels.append(label)
+        email = str(getattr(inbox, "email", "") or "").strip().lower()
+        display = str(getattr(inbox, "display_name", "") or "").strip().lower()
+        local = email.split("@", 1)[0]
+        identities = {label.lower(), email, local, display}
+        identities.discard("")
+        if want and want in identities:
+            exact.append(label)
+        elif want and any(want in item for item in identities):
+            partial.append(label)
+    if exact:
+        return exact[0]
+    if partial:
+        return partial[0]
+    if len(labels) == 1:
+        return labels[0]
+    return None
+
+
+def _resolve_fallback_inbox(client, configured: str) -> str:
+    listed = client.inboxes.list(limit=20)
+    chosen = _pick_inbox(configured, getattr(listed, "inboxes", []) or [])
+    if chosen:
+        return chosen
+    try:
+        from agentmail.inboxes.types.create_inbox_request import CreateInboxRequest
+
+        created = client.inboxes.create(
+            request=CreateInboxRequest(
+                username="tobin",
+                display_name="Tobin AI",
+                client_id="tobin-ai-main",
+            )
+        )
+    except TypeError:
+        created = client.inboxes.create(
+            username="tobin",
+            display_name="Tobin AI",
+            client_id="tobin-ai-main",
+        )
+    label = _inbox_label(created)
+    if not label:
+        raise RuntimeError("AgentMail inbox not found and a replacement could not be created")
+    return label
+
+
+def _deliver_email(client, inbox_id: str, to: str, subject: str, html_body: str) -> None:
+    client.inboxes.messages.send(
+        inbox_id,
+        to=to,
+        subject=subject,
+        html=html_body,
+    )
 
 
 @tool
@@ -71,9 +150,20 @@ def send_sms(to: str, message: str) -> None:
 
 
 def send_email(to: str, subject: str, html_body: str) -> None:
-    _agentmail_client().inboxes.messages.send(
-        _inbox_id(),
-        to=to,
-        subject=subject,
-        html=html_body,
-    )
+    """Send via AgentMail. If AGENTMAIL_INBOX_ID 404s, use a visible inbox or create one."""
+    global _resolved_inbox_id
+    client = _agentmail_client()
+    inbox_id = _resolved_inbox_id or _inbox_id()
+    try:
+        _deliver_email(client, inbox_id, to, subject, html_body)
+    except Exception as exc:
+        if not _missing_inbox(exc):
+            raise
+        fallback = _resolve_fallback_inbox(client, _inbox_id())
+        if fallback == inbox_id:
+            raise
+        print(f"AgentMail inbox {inbox_id!r} not found; sending from {fallback}")
+        _deliver_email(client, fallback, to, subject, html_body)
+        _resolved_inbox_id = fallback
+        return
+    _resolved_inbox_id = inbox_id

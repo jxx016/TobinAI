@@ -46,6 +46,7 @@ def health():
         "agentmail_configured": _env_present("AGENTMAIL_API_KEY", "AGENTMAIL_INBOX_ID"),
         "landlord_email_configured": _env_present("LANDLORD_EMAIL"),
         "demo_request": True,
+        "agentmail_inbox_fallback": True,
     }
 
 
