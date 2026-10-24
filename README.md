@@ -95,4 +95,4 @@ VITE_WS_URL=ws://localhost:3000
 
 ## License
 
-MIT 
+MIT. See [LICENSE](LICENSE). 

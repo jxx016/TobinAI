@@ -1,0 +1,37 @@
+# Deploy from GitHub: New → Blueprint, or Web Service with root ai-agent/
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: tobin-ai
+    runtime: docker
+    plan: free
+    rootDir: ai-agent
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: feat/vendor-research
+    healthCheckPath: /health
+    envVars:
+      - key: AUTO_OUTREACH
+        value: "false"
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: AGENTMAIL_API_KEY
+        sync: false
+      - key: AGENTMAIL_INBOX_ID
+        sync: false
+      - key: LANDLORD_EMAIL
+        sync: false
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: APPROVE_SECRET
+        sync: false

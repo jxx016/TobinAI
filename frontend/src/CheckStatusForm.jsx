@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const N8N_STATUS_WEBHOOK = "http://localhost:5678/webhook/check-status";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const N8N_STATUS_WEBHOOK = `${API_BASE}/webhook/check-status`;
 
 export default function CheckStatusForm() {
   const [referenceNumber, setReferenceNumber] = useState("");
