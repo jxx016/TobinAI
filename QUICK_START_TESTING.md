@@ -11,12 +11,12 @@ Open 4 terminal windows:
 brew services start postgresql@15
 
 # Terminal 2 - Frontend (Maintenance Form)
-cd /Users/johnsoh/Personal_projet/TobinAI/frontend
+cd /path/to/TobinAI/frontend
 npm run dev
 # ✅ Should open at http://localhost:5173
 
 # Terminal 3 - Landing Page
-cd /Users/johnsoh/Personal_projet/TobinAI/landing_page/TobinPropertyAssistant
+cd /path/to/TobinAI/landing_page/TobinPropertyAssistant
 npm run dev
 # ✅ Should open at http://localhost:5555
 
@@ -49,9 +49,9 @@ Before testing, you need to update your n8n workflow. Follow **N8N_UPDATES_GUIDE
 
 **Fill the form:**
 - **Tenant Name**: John Doe
-- **Phone Number**: 612-707-5058
-- **Property Address**: 980 Jefferson Commons Circle
-- **Apartment Unit**: #2402D
+- **Phone Number**: 555-0100
+- **Property Address**: 123 Main Street
+- **Apartment Unit**: 4B
 - **Issue Description**: "No heat in apartment, it's freezing!"
 
 **Click Submit**
@@ -131,7 +131,7 @@ Priority: High
 Category: HVAC
 Summary: Tenant reports heating issue...
 Submitted: Nov 24, 2023, 3:45 PM
-Property: 980 Jefferson Commons Circle #2402D
+Property: 123 Main Street, unit 4B
 ```
 
 ### Step 7: Test Admin Dashboard (30 seconds)
@@ -230,7 +230,7 @@ psql tobin_maintenance -c "SELECT * FROM vendors WHERE is_active = true;"
 psql tobin_maintenance -c "
 INSERT INTO vendors (vendor_name, phone_number, email, specialty, is_active, is_primary, hourly_rate, rating)
 VALUES 
-  ('Joe''s HVAC', '+12064893667', 'joe@hvac.com', 'hvac', true, true, 75.00, 4.8),
+  ('Joe''s HVAC', '+15555550100', 'joe@hvac.com', 'hvac', true, true, 75.00, 4.8),
   ('Quick Plumbing', '+12065551234', 'quick@plumbing.com', 'plumbing', true, true, 80.00, 4.9),
   ('Bright Electric', '+12065555678', 'bright@electric.com', 'electrical', true, true, 85.00, 4.7);
 "

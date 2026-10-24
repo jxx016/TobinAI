@@ -115,13 +115,13 @@ This will send back:
 
 Your frontend will now receive real AI reasoning like:
 - 📝 Received maintenance request
-- 🏠 Property: 980 Jefferson Commons Circle
-- 📍 Unit: #2402D
+- 🏠 Property: 123 Main Street
+- 📍 Unit: 4B
 - 🤖 Parsing AI analysis...
 - ⚡ Classified as: hvac
 - 🚨 Urgency level: High
 - ⏱️ Estimated time: 1-2hrs
 - 🔍 Found vendor: Joe's HVAC
-- 📞 Contact: +12064893667
+- 📞 Contact: +15555550100
 - ✅ Work order created successfully
 

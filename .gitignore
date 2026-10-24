@@ -1,8 +1,14 @@
-# Environment
+# Environment (keep tracked templates such as .env.example)
 .env
-.env.local
-.env.production
-.env.*.local
+.env.*
+!.env.example
+
+# Keys and credential files
+*.pem
+*.key
+credentials.json
+*service-account*.json
+.npmrc
 
 # Python
 __pycache__/
