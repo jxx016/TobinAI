@@ -241,3 +241,5 @@ def test_health_env_presence_flags_not_values(monkeypatch):
     assert body["twilio_configured"] is True
     assert body["agentmail_configured"] is True
     assert body["landlord_email_configured"] is False
+    assert body["demo_request"] is True
+    assert body["agentmail_inbox_fallback"] is True

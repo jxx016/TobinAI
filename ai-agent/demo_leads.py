@@ -126,5 +126,19 @@ def deliver_demo_lead(lead: DemoLead, send) -> str:
     try:
         send(to, subject, html_body)
     except Exception as exc:
-        raise DemoLeadError(f"Could not email lead: {exc}", status_code=502) from exc
+        raise DemoLeadError(_email_error(exc), status_code=502) from exc
     return to
+
+
+def _email_error(exc: Exception) -> str:
+    """Short client-facing reason. Render logs still have the full exception."""
+    body = getattr(exc, "body", None)
+    message = getattr(body, "message", None) if body is not None else None
+    if message is None and isinstance(body, dict):
+        message = body.get("message")
+    if not message:
+        message = str(exc).split("\n", 1)[0]
+    message = " ".join(str(message).split())
+    if len(message) > 240:
+        message = message[:240] + "…"
+    return f"Could not email lead: {message}"

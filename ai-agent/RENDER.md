@@ -11,7 +11,7 @@
    - `AUTO_OUTREACH=false`
    - `APPROVE_SECRET` = a long random string
 5. Create Web Service → wait for deploy
-6. Open `https://<your-service>.onrender.com/health` — expect `{"status":"ok","service":"tobin-ai"}` and `"demo_request": true` after the waitlist endpoint is deployed
+6. Open `https://<your-service>.onrender.com/health` — expect `{"status":"ok","service":"tobin-ai"}` and `"demo_request": true` after the waitlist endpoint is deployed. `"agentmail_inbox_fallback": true` means a missing `AGENTMAIL_INBOX_ID` is resolved by listing or creating an inbox before the landlord email is sent.
 7. Waitlist leads: `POST /webhook/demo-request` with JSON `{email,name,...}` emails `LANDLORD_EMAIL` via AgentMail and returns `{"success":true,"message":"..."}`. No n8n.
 8. Tell Grok Bot the URL so we can point `VITE_API_URL` at it
 
